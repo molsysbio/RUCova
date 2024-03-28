@@ -20,7 +20,7 @@ library(tibble)
 #' @import stringr
 #' @import tibble
 #' @export
-regress_surrogates <- function(data, markers, surrogates, apply_asinh_SUC, col_name_sample = NULL,
+rucova <- function(data, markers, surrogates, apply_asinh_SUC, col_name_sample = NULL,
                                center_surr = "per_sample", model = "simple", keep_offset = TRUE) {
 
   # model = c("simple","offset","interaction"), interaction = slope+offset
