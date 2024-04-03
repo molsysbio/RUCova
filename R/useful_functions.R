@@ -54,10 +54,10 @@
 #'
 #' @export
 #'
-calc_mean_ir <- function(..., q) {
+calc_mean_DNA <- function(..., p) {
   asinh_input <- asinh(rbind(...))
 
-  quantiles <- apply(asinh_input, 1, quantile, probs = q, names = F)
+  quantiles <- apply(asinh_input, 1, quantile, probs = p, names = F)
   scaling_factors <- quantiles[[1]] / quantiles
 
   scaled_data <- asinh_input * scaling_factors
