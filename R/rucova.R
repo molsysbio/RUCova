@@ -20,8 +20,8 @@ library(tibble)
 #' @import stringr
 #' @import tibble
 #' @export
-rucova <- function(data, markers, SUCs, apply_asinh_SUCs, col_name_sample = NULL,
-                               center_SUCs = "per_sample", model = "simple", keep_offset = TRUE) {
+rucova <- function(data, markers, SUCs, apply_asinh_SUCs, col_name_sample = "line",
+                               center_SUCs = "across_samples", model = "interaction", keep_offset = TRUE) {
 
   # model = c("simple","offset","interaction"), interaction = slope+offset
   # keep_offset = TRUE or FALSE
