@@ -2,29 +2,29 @@
 % Please edit documentation in R/rucova.R
 \name{rucova}
 \alias{rucova}
-\title{Remove unwanted covariance}
+\title{Remove unwanted covariance in mass cytometry data}
 \usage{
 rucova(
   data,
   markers,
-  x,
-  apply_asinh_x,
+  SUCs,
+  apply_asinh_SUCs,
   col_name_sample = NULL,
-  center_x = "per_sample",
+  center_SUCs = "per_sample",
   model = "simple",
   keep_offset = TRUE
 )
 }
 \arguments{
-\item{data}{A tibble.}
+\item{data}{A tibble with cells in the rows and features (markers) in the columns. Marker intensity values should be in linear scale.}
 
-\item{markers}{Vector of marker values to normalise.}
+\item{markers}{Vector of marker names to normalise (y).}
 
-\item{x}{Vector of surrogates to use for normalisation.}
+\item{SUCs}{Vector of surrogates of unwanted covariance (SUCs) to use for normalisation (x)}
 }
 \value{
 Normalised tibble.
 }
 \description{
-Remove unwanted covariance
+RUCova fits a multivariate model for each measured marker across cells with respect to the surrogates of unwanted covariance (SUC). Second, it eliminates such dependency by assigning the residuals of the model as the new modified expression of the marker (plus the intercept). 
 }
