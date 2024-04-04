@@ -4,12 +4,12 @@
 \alias{calc_mean_highest_bc}
 \title{Calculated scaled mean of Iridium isotopes}
 \usage{
-calc_mean_highest_bc(..., bc_count, q)
+calc_mean_highest_bc(..., n_bc, q)
 }
 \arguments{
 \item{...}{Channels to average.}
 
-\item{q}{Quantile for normalisation.}
+\item{q}{Percentile for normalisation.}
 }
 \value{
 A vector.

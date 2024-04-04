@@ -54,10 +54,10 @@
 #'
 #' @export
 #'
-calc_mean_DNA <- function(..., p) {
+calc_mean_DNA <- function(..., q) {
   asinh_input <- asinh(rbind(...))
 
-  quantiles <- apply(asinh_input, 1, quantile, probs = p, names = F)
+  quantiles <- apply(asinh_input, 1, quantile, probs = q, names = F)
   scaling_factors <- quantiles[[1]] / quantiles
 
   scaled_data <- asinh_input * scaling_factors
@@ -75,7 +75,7 @@ calc_mean_DNA <- function(..., p) {
 #'
 #' @export
 #'
-calc_mean_highest_bc <- function(..., bc_count, q) {
+calc_mean_highest_bc <- function(..., n_bc, q) {
   asinh_input <- asinh(rbind(...))
 
   quantiles <- apply(asinh_input, 1, quantile, probs = q, names = F)
@@ -86,7 +86,7 @@ calc_mean_highest_bc <- function(..., bc_count, q) {
   scaled_data |>
     apply(2, sort.int, decreasing = TRUE, method = "shell") |>
     #Rfast::colSort(descending = TRUE) |>
-    head(bc_count) |>
+    head(n_bc) |>
     colMeans() |>
     sinh()
 }

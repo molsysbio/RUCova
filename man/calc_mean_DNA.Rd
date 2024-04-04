@@ -4,12 +4,12 @@
 \alias{calc_mean_DNA}
 \title{Calculated scaled mean of Iridium isotopes}
 \usage{
-calc_mean_DNA(..., p)
+calc_mean_DNA(..., q )
 }
 \arguments{
 \item{...}{Channels to average.}
 
-\item{q}{Quantile for normalisation.}
+\item{q}{Percentile for normalisation.}
 }
 \value{
 A vector.
