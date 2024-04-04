@@ -2,18 +2,20 @@
 % Please edit documentation in R/useful_functions.R
 \name{calc_mean_BC}
 \alias{calc_mean_BC}
-\title{Calculated mean of normalised BC isotopes}
+\title{Calculated mean of normalised highest BC per cell}
 \usage{
 calc_mean_BC(..., n_bc, q)
 }
 \arguments{
-\item{...}{Channels to normalise and average.}
+\item{...}{Channels to average.}
 
-\item{q}{Percentile for normalisation.}
+\item{n_bc}{number of barcoding isotopes per cell}
+
+\item{q}{Quantile for normalisation.}
 }
 \value{
 A vector.
 }
 \description{
-Calculated mean of normalised BC isotopes
+Calculated mean of normalised highest BC per cell
 }

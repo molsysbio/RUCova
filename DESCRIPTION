@@ -6,7 +6,7 @@ Description: Mass cytometry data is high dimensional and contains unwanted covar
 License: use_gpl3_license()
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Suggests: 
     knitr,
     rmarkdown
