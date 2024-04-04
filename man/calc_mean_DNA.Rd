@@ -2,12 +2,12 @@
 % Please edit documentation in R/useful_functions.R
 \name{calc_mean_DNA}
 \alias{calc_mean_DNA}
-\title{Calculated scaled mean of Iridium isotopes}
+\title{Calculated mean of normalised Iridium isotopes}
 \usage{
 calc_mean_DNA(..., q )
 }
 \arguments{
-\item{...}{Channels to average.}
+\item{...}{Channels to normalise and average.}
 
 \item{q}{Percentile for normalisation.}
 }

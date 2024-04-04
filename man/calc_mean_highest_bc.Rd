@@ -7,7 +7,7 @@
 calc_mean_highest_bc(..., n_bc, q)
 }
 \arguments{
-\item{...}{Channels to average.}
+\item{...}{Channels to normalise and average.}
 
 \item{q}{Percentile for normalisation.}
 }
