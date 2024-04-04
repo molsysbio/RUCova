@@ -6,11 +6,11 @@ library(stringr)
 library(tibble)
 
 
-#' Regress surrogates of unwanted covariance
+#' Regress x of unwanted covariance
 #'
 #' @param data A tibble.
 #' @param markers Vector of marker values to normalise.
-#' @param surrogates Vector of surrogates to use for normalisation.
+#' @param x Vector of x to use for normalisation.
 #' @return Normalised tibble.
 #' @examples
 #'
@@ -20,23 +20,23 @@ library(tibble)
 #' @import stringr
 #' @import tibble
 #' @export
-rucova <- function(data, markers, surrogates, apply_asinh_SUC, col_name_sample = NULL,
-                               center_surr = "per_sample", model = "simple", keep_offset = TRUE) {
+rucova <- function(data, markers, x, apply_asinh_x, col_name_sample = NULL,
+                               center_x = "per_sample", model = "simple", keep_offset = TRUE) {
 
   # model = c("simple","offset","interaction"), interaction = slope+offset
   # keep_offset = TRUE or FALSE
 
   # Type of model ------------------------------------
-  if (model == "offset" || model == "interaction" || center_surr == "per_sample") {
+  if (model == "offset" || model == "interaction" || center_x == "per_sample") {
     if (missing(col_name_sample)){
       stop("Please specify argument `col_name_sample`")
 
     }
 
-          if(apply_asinh_SUC == TRUE) {
+          if(apply_asinh_x == TRUE) {
             dt <- data |>
               dplyr::rename(sample = col_name_sample) |>
-              mutate(across(all_of(c(markers, surrogates)), asinh))
+              mutate(across(all_of(c(markers, x)), asinh))
           } else {
             dt <- data |>
               dplyr::rename(sample = col_name_sample) |>
@@ -47,10 +47,10 @@ rucova <- function(data, markers, surrogates, apply_asinh_SUC, col_name_sample =
      # dt$sample <- droplevels(dt$sample)
 
   } else {
-          if(apply_asinh_SUC == TRUE) {
+          if(apply_asinh_x == TRUE) {
 
           dt <- data |>
-            mutate(across(all_of(c(markers, surrogates)), asinh))
+            mutate(across(all_of(c(markers, x)), asinh))
 
           } else {
 
@@ -59,16 +59,16 @@ rucova <- function(data, markers, surrogates, apply_asinh_SUC, col_name_sample =
           }
   }
 
-  if (center_surr == "per_sample") {
+  if (center_x == "per_sample") {
     dt <- dt |>
       group_by(sample) |>
-      mutate(across(all_of(surrogates), ~ .x - mean(.x))) |>
+      mutate(across(all_of(x), ~ .x - mean(.x))) |>
       ungroup()
-  } else if (center_surr == "across_samples") {
+  } else if (center_x == "across_samples") {
     dt <- dt |>
-      mutate(across(all_of(surrogates), ~ .x - mean(.x)))
+      mutate(across(all_of(x), ~ .x - mean(.x)))
   } else {
-    stop("Please specify argument 'center_surr'")
+    stop("Please specify argument 'center_x'")
   }
 
   # Add dummy variables if necessary  ------------------------------------
@@ -85,21 +85,21 @@ rucova <- function(data, markers, surrogates, apply_asinh_SUC, col_name_sample =
 
   # Model function and coefficients  ------------------------------------
   if (model == "interaction") {
-    slope_dummy <- levels(interaction(surrogates, dummy_sample_var, sep = " : "))
-    n_coeff <- 1 + length(dummy_sample_var) + length(surrogates) + (length(surrogates) * length(dummy_sample_var))
+    slope_dummy <- levels(interaction(x, dummy_sample_var, sep = " : "))
+    n_coeff <- 1 + length(dummy_sample_var) + length(x) + (length(x) * length(dummy_sample_var))
   } else if (model == "offset") {
     slope_dummy <- NULL
-    n_coeff <- 1 + length(dummy_sample_var) + length(surrogates)
+    n_coeff <- 1 + length(dummy_sample_var) + length(x)
   } else {
     dummy_sample_var <- NULL
     slope_dummy <- NULL
-    n_coeff <- 1 + length(surrogates)
+    n_coeff <- 1 + length(x)
   }
 
   # Regression ------------------------------------
   fits <- lapply(markers, function(marker_to_fit) {
     print(paste0("Fitting ", marker_to_fit))
-    formula <- reformulate(termlabels = c(dummy_sample_var, surrogates, slope_dummy),
+    formula <- reformulate(termlabels = c(dummy_sample_var, x, slope_dummy),
                            response = marker_to_fit)
     lm(formula = formula, data = dt)
     }) |>
@@ -124,7 +124,7 @@ rucova <- function(data, markers, surrogates, apply_asinh_SUC, col_name_sample =
 
   # For output
   model_formula <- reformulate(
-    termlabels = c(dummy_sample_var, surrogates, slope_dummy),
+    termlabels = c(dummy_sample_var, x, slope_dummy),
     response = "y")
 
   # Regressed values ------------------------------------
@@ -158,8 +158,8 @@ rucova <- function(data, markers, surrogates, apply_asinh_SUC, col_name_sample =
 
   eff_coefficients <- eff_coefficients |>
       pivot_longer(names_to = "coef_key", -marker) |>
-      mutate(surrogate = ifelse(str_detect(coef_key, paste(surrogates, collapse = "|")),
-                                str_extract(coef_key, paste(surrogates, collapse = "|")), as.logical(FALSE)))
+      mutate(surrogate = ifelse(str_detect(coef_key, paste(x, collapse = "|")),
+                                str_extract(coef_key, paste(x, collapse = "|")), as.logical(FALSE)))
 
     if (model == "interaction") {
       eff_coefficients <- eff_coefficients |>
@@ -176,9 +176,9 @@ rucova <- function(data, markers, surrogates, apply_asinh_SUC, col_name_sample =
         mutate(sample = str_remove(coef_key, "sample_"),
                sample = ifelse(sample %in% str_remove(dummy_sample_var, "sample_") &
                                  surrogate == "FALSE", sample, baseline_sample),
-               sample = ifelse(surrogate %in% surrogates, "all", sample)) |>
+               sample = ifelse(surrogate %in% x, "all", sample)) |>
         group_by(surrogate, marker) |>
-        mutate(eff_value = ifelse(sample == baseline_sample | surrogate %in% surrogates,
+        mutate(eff_value = ifelse(sample == baseline_sample | surrogate %in% x,
                                   value,
                                   value + value[sample == baseline_sample])) |>
         ungroup()
@@ -190,10 +190,10 @@ rucova <- function(data, markers, surrogates, apply_asinh_SUC, col_name_sample =
   # Standardized slopes (effect size) ------------------------------------
     if (model == "simple" || model == "offset") { # 1 slope across all cells
       sd_values <- dt |>
-        summarise(across(all_of(c(markers, surrogates)), sd)) |>
+        summarise(across(all_of(c(markers, x)), sd)) |>
         ungroup() |>
         pivot_longer(names_to = "marker", values_to = "sd_y", markers) |>
-        pivot_longer(names_to = "surrogate", values_to = "sd_x", surrogates)
+        pivot_longer(names_to = "surrogate", values_to = "sd_x", x)
 
       stand_slopes <- eff_coefficients |>
         filter(surrogate != FALSE) |>
@@ -202,10 +202,10 @@ rucova <- function(data, markers, surrogates, apply_asinh_SUC, col_name_sample =
     } else { # 1 slope per sample
       sd_values <- dt |>
         group_by(sample) |>
-        summarise_at(vars(markers, surrogates), sd) |>
+        summarise_at(vars(markers, x), sd) |>
         ungroup() |>
         pivot_longer(names_to = "marker", values_to = "sd_y", markers) |>
-        pivot_longer(names_to = "surrogate", values_to = "sd_x", surrogates)
+        pivot_longer(names_to = "surrogate", values_to = "sd_x", x)
 
       stand_slopes <- eff_coefficients |>
         filter(surrogate != FALSE) |>
@@ -214,7 +214,7 @@ rucova <- function(data, markers, surrogates, apply_asinh_SUC, col_name_sample =
     }
 
   # Output ------------------------------------
-  out_ruc <- list(data_reg, markers, surrogates, center_surr, model, keep_offset, col_name_sample, model_formula, model_coefficients.new, model_residuals.new, adjr2.new, eff_coefficients, stand_slopes)
-  names(out_ruc) <- c("data_reg", "markers", "surrogates", "center_surr", "model", "keep_offset", "col_name_sample", "model_formula", "model_coefficients", "model_residuals", "adjr2", "eff_coefficients", "stand_slopes")
+  out_ruc <- list(data_reg, markers, x, center_x, model, keep_offset, col_name_sample, model_formula, model_coefficients.new, model_residuals.new, adjr2.new, eff_coefficients, stand_slopes)
+  names(out_ruc) <- c("data_reg", "markers", "x", "center_x", "model", "keep_offset", "col_name_sample", "model_formula", "model_coefficients", "model_residuals", "adjr2", "eff_coefficients", "stand_slopes")
   return(out_ruc)
 }

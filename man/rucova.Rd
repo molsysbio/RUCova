@@ -7,10 +7,10 @@
 rucova(
   data,
   markers,
-  surrogates,
-  apply_asinh_SUC,
+  x,
+  apply_asinh_x,
   col_name_sample = NULL,
-  center_surr = "per_sample",
+  center_x = "per_sample",
   model = "simple",
   keep_offset = TRUE
 )
@@ -20,7 +20,7 @@ rucova(
 
 \item{markers}{Vector of marker values to normalise.}
 
-\item{surrogates}{Vector of surrogates to use for normalisation.}
+\item{x}{Vector of surrogates to use for normalisation.}
 }
 \value{
 Normalised tibble.
