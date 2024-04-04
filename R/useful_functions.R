@@ -45,7 +45,7 @@
 #   return(mean_ir)
 # }
 
-#' Calculated scaled mean of Iridium isotopes
+#' Calculated mean of normalised Iridium isotopes
 #'
 #' @param ... Channels to average.
 #' @param q Quantile for normalisation.
@@ -66,16 +66,17 @@ calc_mean_DNA <- function(..., q) {
   sinh(means)
 }
 
-#' Calculated scaled mean of Iridium isotopes
+#' Calculated mean of normalised highest BC per cell
 #'
 #' @param ... Channels to average.
 #' @param q Quantile for normalisation.
+#' @param n_bc number of barcoding isotopes per cell
 #' @return A vector.
 #' @examples
 #'
 #' @export
 #'
-calc_mean_highest_bc <- function(..., n_bc, q) {
+calc_mean_BC <- function(..., n_bc, q) {
   asinh_input <- asinh(rbind(...))
 
   quantiles <- apply(asinh_input, 1, quantile, probs = q, names = F)
