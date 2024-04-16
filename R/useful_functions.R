@@ -1,56 +1,16 @@
-# fair_zscore <- function(x,vars,group_var){
-#
-#   x <- x %>%
-#     mutate(across(vars,asinh))
-#
-#   mean_sd <- x %>%
-#     group_by_(group_var) %>%
-#     summarise(across(vars,sd)) %>% ungroup() %>%
-#     summarise(across(vars,mean,.names = '{col}_mean_sd'))
-#
-#
-#   x %>%
-#     bind_cols(mean_sd) %>%
-#     group_by_(group_var) %>%
-#     mutate(across(.cols = vars, .fns = ~ (.x - mean(.x))/mean_sd(.x,)))
-#
-#
-# }
 
-# calc_mean_ir <- function(data, iridium_channels, q){
-#
-#
-#   perc <- data %>%
-#     select(iridium_channels) %>%
-#     mutate_all(asinh) %>%
-#     pivot_longer(names_to = "iridium_channels", values_to = "values", everything()) %>%
-#     group_by(iridium_channels) %>%
-#     summarise(percentile = quantile(values, probs = q)) %>%
-#     ungroup() %>%
-#     mutate(sf = percentile[iridium_channels == iridium_channels[1]]/percentile) %>% #first is the reference
-#     select(iridium_channels, sf)
-#
-#
-#   mean_ir <- data %>%
-#     select(id,iridium_channels) %>%
-#     mutate_at(vars(iridium_channels), asinh) %>%
-#     pivot_longer(names_to = "iridium_channels", values_to = "value", -id) %>%
-#     left_join(perc, by = "iridium_channels") %>%
-#     mutate(value = value*sf) %>%
-#     group_by(id) %>%
-#     summarize(mean_ir = mean(value)) %>%
-#     ungroup() %>%
-#     mutate(mean_ir = sinh(mean_ir))
-#
-#   return(mean_ir)
-# }
+library(dplyr)
+library(ComplexHeatmap)
+library(circlize)
+
 
 #' Calculated mean of normalised Iridium isotopes
 #'
-#' @param ... Channels to average.
+#' @param ... Channels to average in linear scale. Asinh transformation is applied within the function.
 #' @param q Quantile for normalisation.
 #' @return A vector.
-#' @examples
+#' @examples 
+#' data |> mutate(mean_DNA = RUCova::calc_mean_DNA(DNA_191Ir, DNA_193Ir, q = 0.95)))
 #'
 #' @export
 #'
@@ -68,12 +28,13 @@ calc_mean_DNA <- function(..., q) {
 
 #' Calculated mean of normalised highest BC per cell
 #'
-#' @param ... Channels to average.
+#' @param ... Channels to average in linear scale. Asinh transformation is applied within the function.
 #' @param q Quantile for normalisation.
-#' @param n_bc number of barcoding isotopes per cell
+#' @param n_bc number of barcoding isotopes per cell.
 #' @return A vector.
 #' @examples
-#'
+#' data |> mutate(mean_BC = RUCova::calc_mean_BC(Pd102Di, Pd104Di, Pd105Di, Pd106Di, Pd108Di, Pd110Di, n_bc = 4, q = 0.95))
+#' 
 #' @export
 #'
 calc_mean_BC <- function(..., n_bc, q) {
@@ -92,5 +53,35 @@ calc_mean_BC <- function(..., n_bc, q) {
     sinh()
 }
 
+#' Plot pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova).
+#' @param corr_values_before Matrix with pearson correlation coefficient between markers before RUCova.
+#' @param corr_values_after  Matrix with pearson correlation coefficient between markers after RUCova.
+#' @return #A heatmap
+#' @examples 
+#' plot_corr_before_after(corr_values_before,corr_values_after)
+#'
+#' @export
+#'
+#'
+plot_corr_before_after <- function(corr_values_before, corr_values_after){
 
+tmp <-  as.matrix(tril(corr_values_before,-1) + 
+                    triu(corr_values_after))
+
+diag(tmp) <- NA
+hm <- tmp|> 
+  ComplexHeatmap::Heatmap(col = colorRamp2(c(-1, 0, 1), c("blue", "white", "red")),
+                          name = "Pearson corr.coef",
+                          na_col = "grey",
+                          rect_gp = gpar(col = "black", lwd = 0),
+                          cluster_rows = FALSE,
+                          cluster_columns = FALSE,
+                          row_names_side = "left",
+                          column_names_side = "top",
+                          row_title_rot = 0,
+                          row_title_side = "right")
+
+draw(hm)
+
+}
 
