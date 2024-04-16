@@ -7,9 +7,9 @@
 calc_mean_BC(..., n_bc, q)
 }
 \arguments{
-\item{...}{Channels to average.}
+\item{...}{Channels to average in linear scale. Asinh transformation is applied within the function.}
 
-\item{n_bc}{number of barcoding isotopes per cell}
+\item{n_bc}{number of barcoding isotopes per cell.}
 
 \item{q}{Quantile for normalisation.}
 }
@@ -18,4 +18,8 @@ A vector.
 }
 \description{
 Calculated mean of normalised highest BC per cell
+}
+\examples{
+data |> mutate(mean_BC = RUCova::calc_mean_BC(Pd102Di, Pd104Di, Pd105Di, Pd106Di, Pd108Di, Pd110Di, n_bc = 4, q = 0.95))
+
 }

@@ -7,7 +7,7 @@
 calc_mean_DNA(..., q)
 }
 \arguments{
-\item{...}{Channels to average.}
+\item{...}{Channels to average in linear scale. Asinh transformation is applied within the function.}
 
 \item{q}{Quantile for normalisation.}
 }
@@ -16,4 +16,8 @@ A vector.
 }
 \description{
 Calculated mean of normalised Iridium isotopes
+}
+\examples{
+data |> mutate(mean_DNA = RUCova::calc_mean_DNA(DNA_191Ir, DNA_193Ir, q = 0.95)))
+
 }
