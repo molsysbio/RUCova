@@ -2,7 +2,7 @@
 
 export(calc_mean_BC)
 export(calc_mean_DNA)
-export(plot_corr_before_after)
+export(heatmap_compare_corr)
 export(rucova)
 import(dplyr)
 import(fastDummies)
