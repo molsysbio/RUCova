@@ -88,7 +88,7 @@ rucova <- function(data, markers, SUCs, apply_asinh_SUCs, col_name_sample = "lin
       summarise(across(all_of(dummy_sample_var), max))
   }
 
-  dt <- data |> mutate(cell_id = 1:n())
+  #dt <- data |> mutate(cell_id = 1:n())
   
   # Model function and coefficients  ------------------------------------
   if (model == "interaction") {
