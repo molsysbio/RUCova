@@ -88,7 +88,7 @@ rucova <- function(data, markers, SUCs, apply_asinh_SUCs, col_name_sample = "lin
       summarise(across(all_of(dummy_sample_var), max))
   }
 
-  dt <- data |> mutate(id = 1:n())
+  dt <- data |> mutate(cell_id = 1:n())
   
   # Model function and coefficients  ------------------------------------
   if (model == "interaction") {
@@ -117,7 +117,7 @@ rucova <- function(data, markers, SUCs, apply_asinh_SUCs, col_name_sample = "lin
 
   model_residuals.new <- sapply(fits, resid) |>
     as_tibble() |>
-    mutate(id = dt$id, .before = 1)
+    mutate(cell_id = dt$cell_id, .before = 1)
 
   adjr2.new <- vapply(fits, function(fit) {
     SSres <- sum(residuals(fit)^2)
@@ -153,7 +153,7 @@ rucova <- function(data, markers, SUCs, apply_asinh_SUCs, col_name_sample = "lin
   data_reg <-
     data |>
     select(-all_of(markers)) |>
-    left_join(new_values, by = "id") |>
+    left_join(new_values, by = "cell_id") |>
     select(colnames(data)) |> # same order
     mutate(across(all_of(markers), sinh))
 
