@@ -66,11 +66,10 @@ calc_mean_BC <- function(..., n_bc, q) {
 #'
 plot_corr_before_after <- function(corr_values_before, corr_values_after){
 
-tmp <-  as.matrix(tril(corr_values_before,-1) + 
-                    triu(corr_values_after))
+tmp <-  as.matrix(tril(as.matrix(corr_values_before)) + triu(as.matrix(corr_values_after)))
 
 diag(tmp) <- NA
-hm <- tmp|> 
+hm <- tmp |> 
   ComplexHeatmap::Heatmap(col = colorRamp2(c(-1, 0, 1), c("blue", "white", "red")),
                           name = "Pearson corr.coef",
                           na_col = "grey",
