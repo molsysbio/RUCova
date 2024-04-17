@@ -80,6 +80,12 @@ The character variables in the vectors ```surrogates```and ```markers``` must be
 
 ### 3. Apply RUCova
 
+First we add a id per cell to be able to do a cell-wise comparison of signals before and after RUCova:
+
+```
+data <- data |> mutate(cell_id = 1:n())
+```
+
 Let's imagine you want to be conservative and only remove correlations between markers and PC1 (of SUCs). Then, ```SUCs= "PC1"```,  ```apply_asinh_SUCs = FALSE``` as asinh transformation is not necessary on PCs (it was applied on SUCs before PCA). We will choose the interaction model (```model = "interaction"```), as the data set contains different cell lines (samples), and for each one we want to allow different slopes and intercepts between marker expression and SUCs (or PCs (```col_name_sample = "line"```). Differences in marker expression between cell lines can be artificially influenced by e.g.: different cell volumes leading to an unwanted covariance. To remove these artefactual differences in marker expression we center the surrogates across samples for the linear fit (```center_SUCs = "across_samples"```). In case is desirable to keep the remaining offset between the cell lines, we set ``` keep_offset = TRUE```. 
 
 ```
