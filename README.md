@@ -68,20 +68,72 @@ as.data.frame(pca_sucs$rotation) |>
   facet_wrap(~PC, nrow = 1)
 ```
 
+Add the PCs to the main data frame:
+
+```
+data <- data |> 
+        cbind(as.data.frame(pca_sucs$x)) 
+```
+
 Finally we define a vector for the markers for which we want to regress-out the unwated covariance: ```markers = c("pH3","IdU","Cyclin_D1","Cyclin_B1", "Ki.67","pRb","pH2A.X","p.p53","p.p38","pChk2","pCDC25c","cCasp3","cPARP","pAkt","pAkt_T308","pMEK1.2","pERK1.2","pS6","p4e.BP1","pSmad1.8","pSmad2.3","pNF.κB","IκBα", "CXCL1","Lamin_B1", "pStat1","pStat3", "YAP","NICD")```
 The character variables in the vectors ```surrogates```and ```markers``` must be findable as column names in the mass cytometry data set ```data```.
 
-
-
-
-
-
-
-
-
-
 ### 3. Apply RUCova
 
+Let's imagine you want to be conservative and only remove correlations between markers and PC1 (of SUCs). Then, ```SUCs= "PC1"```,  ```apply_asinh_SUCs = FALSE``` as asinh transformation is not necessary on PCs (it was applied on SUCs before PCA). We will choose the interaction model (```model = "interaction"```), as the data set contains different cell lines (samples), and for each one we want to allow different slopes and intercepts between marker expression and SUCs (or PCs (```col_name_sample = "line"```). Differences in marker expression between cell lines can be artificially influenced by e.g.: different cell volumes leading to an unwanted covariance. To remove these artefactual differences in marker expression we center the surrogates across samples for the linear fit (```center_SUCs = "across_samples"```). In case is desirable to keep the remaining offset between the cell lines, we set ``` keep_offset = TRUE```. 
+
+```
+rucova_pc1 <-  RUCova::rucova(data, 
+                              markers,
+                              SUCs= "PC1",
+                              apply_asinh_SUCs = FALSE,
+                              model = "interaction",
+                              col_name_sample = "line",
+                              center_SUCs = "across_samples",
+                              keep_offset = TRUE)
+data_reg_pc1 <- rucova_pc1$data_reg
+```
+
+To remove the covariance driven by all PCs (in this example, 4):
+
+```
+rucova_all <-  RUCova::rucova(data, 
+                              markers,
+                              SUCs= c("PC1","PC2","PC3","PC4"),
+                              apply_asinh_SUCs = FALSE,
+                              model = "interaction",
+                              col_name_sample = "line",
+                              center_SUCs = "across_samples",
+                              keep_offset = TRUE)
+data_reg_all <- rucova_all$data_reg
+```
+
+More information about the models can be found in: ------------ paper?
+
+
 ### 4. Evaluate the benefit of RUCova
+
+We recommend to calculate the Pearson correlation coefficients between markers and SUCs before RUCova and after RUCova, and compare:
+
+```
+corr_reg_before <- data |>
+  mutate_at(vars(markers,surrogates), asinh) |> 
+  select(markers,surrogates,PC1,PC2,PC3,PC4) |> 
+  cor(method= "pearson")
+
+corr_reg_all <- data_reg_all |>
+  mutate_at(vars(markers,surrogates), asinh) |> 
+  select(markers,surrogates,PC1,PC2,PC3,PC4) |> 
+  cor(method= "pearson")
+```
+Here, ```corr_reg_before```and ```corr_reg_all``` should be square matrices containing the pearson correlation coefficient between markers and surrogates. Row and column names of the matrices should be the corresponding markers and surrogates. Correlation coefficients can be calculated across the entire data set or filtered by each sample if desired.
+
+Using the RUCova function ```heatmap_compare_corr()``` we can generate a square heatmap with the correlation coefficients before RUCova in the lower triangle (first argument) and after RUCova in the upper triangle (second argument) for a direct comparison:
+
+```
+RUCova::heatmap_compare_corr(lower = corr_reg_before, upper = corr_reg_all)
+```
+To further evaluate the benefit of RUCova, we recommend to also perform your favorite analysis on the data before RUCova and also after RUCova, and then compare both. This can be: density plots of marker intensity signals, UMAPs, heatmap of fold-changes, Louvain clustering, etc. 
+
 
 
