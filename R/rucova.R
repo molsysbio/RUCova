@@ -38,7 +38,6 @@ rucova <- function(data, markers, SUCs, apply_asinh_SUCs, col_name_sample = "lin
       stop("Please specify argument `col_name_sample`")
 
     }
-
           if(apply_asinh_SUCs == TRUE) {
             dt <- data |>
               dplyr::rename(sample = col_name_sample) |>
@@ -89,6 +88,8 @@ rucova <- function(data, markers, SUCs, apply_asinh_SUCs, col_name_sample = "lin
       summarise(across(all_of(dummy_sample_var), max))
   }
 
+  dt <- data |> mutate(id = 1:n())
+  
   # Model function and coefficients  ------------------------------------
   if (model == "interaction") {
     slope_dummy <- levels(interaction(SUCs, dummy_sample_var, sep = " : "))
