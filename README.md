@@ -16,7 +16,7 @@ library(RUCova)
 
 As Surrogates of Unwanted Covariance (SUCs) we selected the signals of total ERK, pan Akt, mean BC (mean value of normalised and used barcoding isotopes), and mean DNA (mean value of iridium DNA intercalators).
 
-#### mean BC:
+#### mean BC
 
 The RUCova function called ```RUCova::calc_mean_BC``` works in two steps. First, it applies the ```asinh()``` function and adjusts the transformed distributions of the barcoding isotopes by matching a specific percentile ```q```. Then, it looks at the signals of each isotope for each cell and picks the top ```n_bc``` signals used for barcoding. The function returns a vector with the mean BC signals in linear scale, as it applyies the inverse tranformation ```sinh()```. In the following example the Cell-ID 20-Plex Pd Barcoding Kit was used, where 3 out of 6 isotopes are mixed together to form one barcode:
 ```
@@ -25,7 +25,7 @@ The RUCova function called ```RUCova::calc_mean_BC``` works in two steps. First,
                                         n_bc = 3, q = 0.95))
 ```
 
-#### mean DNA:
+#### mean DNA
 
 The RUCova function called ```RUCova::calc_mean_DNA``` applies the ```asinh()``` function and adjusts the transformed distributions of the iridium isotopes (Ir191 and Ir193) by matching a specific percentile ```q``` to then take the mean value of these two signals per cell. The function returns a vector with the mean DNA signals in linear scale, as it applyies the inverse tranformation ```sinh()```.
 ```
@@ -37,7 +37,7 @@ Then we define the vector for the SUCs: ```surrogates = c("total_ERK", "pan_Akt"
 
 SUCs can also be linearly transformed onto a new coordinate system by applying Principal Component Analysis. By doing this, users can decide the extent of unwanted correlation to be removed by using eg.: only PC1 as a predictive variable in the univariate model, or PC1 to PC2, or all PCs which is equivalent as taking all surrogates as predictive variables.
 
-#### PCA on SUCs:
+#### PCA on SUCs
 
 ```
 pca_sucs <- data |> 
