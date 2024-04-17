@@ -64,9 +64,9 @@ calc_mean_BC <- function(..., n_bc, q) {
 #' @export
 #'
 #'
-heatmap_compare_corr <- function(corr_values_before, corr_values_after){
+heatmap_compare_corr <- function(lower, upper){
 
-tmp <-  as.matrix(tril(as.matrix(corr_values_before)) + triu(as.matrix(corr_values_after)))
+tmp <-  as.matrix(tril(as.matrix(lower)) + triu(as.matrix(upper)))
 
 diag(tmp) <- NA
 hm <- tmp |> 
