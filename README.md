@@ -1,6 +1,12 @@
 ## RUCova: Removal of Unwanted Covariance in mass cytometry data
 Here we present the R package RUCova, a novel method designed to address confounding factors such as heterogeneous cell size and staining efficiency in mass cytometry data. RUCova  removes unwanted covariance using multivariate linear regression based on Surrogates of Unwanted Covariance (SUCs), and Principal Component Analysis (PCA). 
 
+Citation:
+
+RUCova: Removal of Unwanted Covariance in mass cytometry data
+Rosario Astaburuaga-García, Thomas Sell, Samet Mutlu, Anja Sieber, Kirsten Lauber, Nils Blüthgen
+bioRxiv 2024.05.24.595717; doi: https://doi.org/10.1101/2024.05.24.595717
+
 ### 1. Install RUCova
 
 Simply run the following in R:
