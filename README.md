@@ -127,8 +127,6 @@ rucova_all <-  RUCova::rucova(data,
 data_reg_all <- rucova_all$data_reg
 ```
 
-More information about the models can be found in: ------------ paper?
-
 
 ### 4. Evaluate the benefit of RUCova
 
