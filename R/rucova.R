@@ -9,12 +9,12 @@ library(tibble)
 #' Remove unwanted covariance
 #'
 #' @param data A tibble with markers and SUCs in linear scale. Asinh transformation is applied within the function.
-#' @param markers Vector of marker values to normalise, y (in linear scale).
+#' @param markers Vector of marker names to normalise, y (in linear scale).
 #' @param SUCs Vector of surrogates of unwanted covariance to use for normalisation, x (in linear scale).
 #' @param apply_asinh_SUCs Apply (TRUE) or not (FALSE) asinh transformation to the SUCs. TRUE if SUCs are the measured surrogates, FALSE if SUCs are PCs.
+#' @param model A character: "simple", "offset" or "interaction" defining the model.
 #' @param col_name_sample A character indicating the column name in "data" defining each sample.
 #' @param center_SUCs A character "across_samples" or "per_sample" defining how to center the SUCs in zero.
-#' @param model A character: "simple", "offset" or "interaction" defining the model.
 #' @param keep_offset Keep (TRUE) or not (FALSE) the offset intercept between samples.
 #' @return Normalised tibble with marker and surrogate values in linear scale (as the input).
 #' @examples 
@@ -26,8 +26,8 @@ library(tibble)
 #' @import stringr
 #' @import tibble
 #' @export
-rucova <- function(data, markers, SUCs, apply_asinh_SUCs, col_name_sample = "line",
-                               center_SUCs = "across_samples", model = "interaction", keep_offset = TRUE) {
+rucova <- function(data, markers, SUCs, apply_asinh_SUCs, model = "interaction", col_name_sample = "line",
+                               center_SUCs = "across_samples", keep_offset = TRUE) {
 
   # model = c("simple","offset","interaction"), interaction = slope+offset
   # keep_offset = TRUE or FALSE
@@ -221,7 +221,8 @@ rucova <- function(data, markers, SUCs, apply_asinh_SUCs, col_name_sample = "lin
     }
 
   # Output ------------------------------------
-  out_ruc <- list(data_reg, markers, SUCs, center_SUCs, model, keep_offset, col_name_sample, model_formula, model_coefficients.new, model_residuals.new, adjr2.new, eff_coefficients, stand_slopes)
-  names(out_ruc) <- c("data_reg", "markers", "SUCs", "center_SUCs", "model", "keep_offset", "col_name_sample", "model_formula", "model_coefficients", "model_residuals", "adjr2", "eff_coefficients", "stand_slopes")
+  
+  out_ruc <- list(data_reg, markers, SUCs, apply_asinh_SUCs, model,col_name_sample,center_SUCs, keep_offset, col_name_sample, model_formula, model_coefficients.new,eff_coefficients, model_residuals.new, adjr2.new, stand_slopes)
+  names(out_ruc) <- c("data_reg", "markers", "SUCs", "apply_asinh_SUCs", "model", "col_name_sample", "center_SUCs", "keep_offset", "model_formula", "model_coefficients","eff_coefficients", "model_residuals", "adjr2", "stand_slopes")
   return(out_ruc)
 }
