@@ -112,6 +112,7 @@ rucova <- function(data, markers, SUCs, apply_asinh_SUCs, model = "interaction",
     }) |>
     setNames(markers)
 
+  
   model_coefficients.new <- sapply(fits, coef) |> t() |>
     as_tibble(rownames = "marker")
 
