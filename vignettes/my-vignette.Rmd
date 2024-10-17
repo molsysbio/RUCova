@@ -31,7 +31,7 @@ RUCova offers 3 different uni- or multi-variate linear models to describe the re
 
 The RUCova method eliminates the dependency of each measured marker on the SUCs by computing the model's residuals and the intercept as the revised expression for each marker ($y^{m*}_i$).:
 
-$$ y^{*m}_i(j_i) = O_1^m(j_i) + \epsilon^m_i$, where$\epsilon^m_i $$ are the residuals of the model.
+$$ y^{*m}_i(j_i) = O_1^m(j_i) + \epsilon^m_i $$, where $\epsilon^m_i$ are the residuals of the model.
 
 
 In this vignette, we guide you step-by-step through it so you can make good use this package and reliably analyse single-cell mass cytometry data.
@@ -175,7 +175,7 @@ Consists of one fit per measured marker$y^m_i$and sample$j_i$. The fits for the 
 
 $M_2(\vec{x}_{i},j_i) = \underbrace{\beta^m_{j_i}}_{=O_2^m(j_i)} + \underbrace{\sum_{p = 1}^{N_{SUC}} \alpha^m_{p} \cdot x_{i,p}}_{=S_2^m(\vec{x}_{i})}\$
 
-The offset - intercept - term$O^m$can either represent desired variation between samples (`keep_offset = TRUE`) or unwanted variation (`keep_offset = FALSE`). If the offset is considered wanted, the output from the offset model will closely resemble that of the simple model. However, the offset model becomes particularly important when the variation between samples is unwanted, such as when different samples represent batches and the goal is to remove batch effects.
+The offset - intercept - term $O^m$ can either represent desired variation between samples (`keep_offset = TRUE`) or unwanted variation (`keep_offset = FALSE`). If the offset is considered wanted, the output from the offset model will closely resemble that of the simple model. However, the offset model becomes particularly important when the variation between samples is unwanted, such as when different samples represent batches and the goal is to remove batch effects.
 
 
 #### M3: Interaction 
@@ -249,33 +249,33 @@ $\alpha^{m*}_{j_i,x_{i,p}} = \alpha^m_{j_i,x_{i,p}}\cdot \frac{\sigma_{x_{j_i,p}
 ## Examples
 
 
-<!-- ### M1: Simple model -->
+### M1: Simple model
 
-<!-- As we have multiple cancer cell lines in the current data set, we run the simple model in only one cell line and across control and treated condition. -->
+As we have multiple cancer cell lines in the current data set, we run the simple model in only one cell line and across control and treated condition.
 
-<!-- ```{r} -->
-<!-- data_Cal33 <-  data |> filter(line == "Cal33") -->
-<!-- ``` -->
+```{r}
+data_Cal33 <-  data |> filter(line == "Cal33")
+```
 
-<!-- ####  PCA -->
+####  PCA
 
-<!-- ```{r} -->
-<!-- pca_cal33 <- data_Cal33 |>  -->
-<!--   select(x) |>  -->
-<!--   mutate_all(asinh) |>  -->
-<!--   mutate_all(scale) |>  -->
-<!--   prcomp() -->
-<!-- ``` -->
+```{r}
+pca_cal33 <- data_Cal33 |>
+  select(x) |>
+  mutate_all(asinh) |>
+  mutate_all(scale) |>
+  prcomp()
+```
 
-<!-- Calculate and plot the variance explained by each PC: -->
+Calculate and plot the variance explained by each PC:
 
-<!-- ```{r} -->
-<!-- tibble(perc = as.numeric(pca_cal33$sdev^2/sum(pca_cal33$sdev^2))*100,  -->
-<!--        PC = 1:length(pca_cal33$sdev)) |>   -->
-<!--   ggplot(aes(x = PC, y = perc, label = round(perc,1))) +  -->
-<!--   geom_col() + -->
-<!--   geom_label() -->
-<!-- ``` -->
+```{r}
+tibble(perc = as.numeric(pca_cal33$sdev^2/sum(pca_cal33$sdev^2))*100,
+       PC = 1:length(pca_cal33$sdev)) |>
+  ggplot(aes(x = PC, y = perc, label = round(perc,1))) +
+  geom_col() +
+  geom_label()
+```
 
 <!-- Check the loadings of each PC: -->
 
