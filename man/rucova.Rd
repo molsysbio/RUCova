@@ -9,26 +9,26 @@ rucova(
   markers,
   SUCs,
   apply_asinh_SUCs,
+  model = "interaction",
   col_name_sample = "line",
   center_SUCs = "across_samples",
-  model = "interaction",
   keep_offset = TRUE
 )
 }
 \arguments{
 \item{data}{A tibble with markers and SUCs in linear scale. Asinh transformation is applied within the function.}
 
-\item{markers}{Vector of marker values to normalise, y (in linear scale).}
+\item{markers}{Vector of marker names to normalise, y (in linear scale).}
 
 \item{SUCs}{Vector of surrogates of unwanted covariance to use for normalisation, x (in linear scale).}
 
 \item{apply_asinh_SUCs}{Apply (TRUE) or not (FALSE) asinh transformation to the SUCs. TRUE if SUCs are the measured surrogates, FALSE if SUCs are PCs.}
 
+\item{model}{A character: "simple", "offset" or "interaction" defining the model.}
+
 \item{col_name_sample}{A character indicating the column name in "data" defining each sample.}
 
 \item{center_SUCs}{A character "across_samples" or "per_sample" defining how to center the SUCs in zero.}
-
-\item{model}{A character: "simple", "offset" or "interaction" defining the model.}
 
 \item{keep_offset}{Keep (TRUE) or not (FALSE) the offset intercept between samples.}
 }

@@ -151,7 +151,6 @@ pca <- data |>
   mutate_all(scale) |> 
   prcomp()
 
-x = "PC1" # or c("PC1","PC2"), or all PCs, which is equivalent as taking all four SUCs.
 ```
 
 ### apply_asinh_SUCs 
