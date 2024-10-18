@@ -277,16 +277,16 @@ tibble(perc = as.numeric(pca_cal33$sdev^2/sum(pca_cal33$sdev^2))*100,
   geom_label()
 ```
 
-<!-- Check the loadings of each PC: -->
+Check the loadings of each PC:
 
-<!-- ```{r, fig.width=15, fig.height=5} -->
-<!-- as.data.frame(pca_cal33$rotation) |>  -->
-<!--   rownames_to_column("x") |>  -->
-<!--   pivot_longer(names_to = "PC", values_to = "loadings", -x) |>  -->
-<!--   ggplot(aes(x = loadings, y = x)) +  -->
-<!--   geom_col() +  -->
-<!--   facet_wrap(~PC, nrow = 1) -->
-<!-- ``` -->
+```{r, fig.width=15, fig.height=5}
+as.data.frame(pca_cal33$rotation) |>
+  rownames_to_column("x") |>
+  pivot_longer(names_to = "PC", values_to = "loadings", -x) |>
+  ggplot(aes(x = loadings, y = x)) +
+  geom_col() +
+  facet_wrap(~PC, nrow = 1)
+```
 
 <!-- Add the PCs to the main data frame: -->
 
