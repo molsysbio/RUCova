@@ -11,7 +11,7 @@
 #' @import ComplexHeatmap
 #' @import circlize
 #' @import Matrix
-#' @import gpar
+#' @import grid
 
 calc_mean_DNA <- function(..., q) {
   asinh_input <- asinh(rbind(...))
