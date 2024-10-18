@@ -23,6 +23,6 @@ Imports:
     tibble,
     Matrix,
     ComplexHeatmap,
-    gpar,
+    grid,
     circlize,
 VignetteBuilder: knitr

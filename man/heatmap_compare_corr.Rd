@@ -19,5 +19,4 @@ Plot pearson correlation coefficients between markers on a double triangular hea
 }
 \examples{
 plot_corr_before_after(corr_values_before,corr_values_after)
-
 }
