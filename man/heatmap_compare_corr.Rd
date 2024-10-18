@@ -7,9 +7,9 @@
 heatmap_compare_corr(lower, upper)
 }
 \arguments{
-\item{corr_values_before}{Matrix with pearson correlation coefficient between markers before RUCova.}
+\item{lower}{Matrix with pearson correlation coefficient between markers eg.: before RUCova, to be plotted in the lower triangle.}
 
-\item{corr_values_after}{Matrix with pearson correlation coefficient between markers after RUCova.}
+\item{upper}{Matrix with pearson correlation coefficient between markers eg.: after RUCova, to be plotted in the upper triangle.}
 }
 \value{
 #A heatmap
@@ -18,5 +18,5 @@ heatmap_compare_corr(lower, upper)
 Plot pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova).
 }
 \examples{
-plot_corr_before_after(corr_values_before,corr_values_after)
+heatmap_compare_corr(lower,upper)
 }
