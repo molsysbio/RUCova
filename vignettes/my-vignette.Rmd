@@ -1,10 +1,12 @@
 ---
 title: "Removing Unwanted Covariance in mass cytometry data with RUCova"
+pdf_document: null
 geometry: "left=1cm,right=1cm,top=1cm,bottom=1cm"
 output: 
   rmarkdown::html_vignette:
     toc: TRUE
     toc_depth: 2
+    toc_float: true
 vignette: >
   %\VignetteIndexEntry{Removing Unwanted Covariance in mass cytometry data with RUCova}
   %\VignetteEngine{knitr::rmarkdown}
