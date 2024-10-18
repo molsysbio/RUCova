@@ -53,11 +53,11 @@ calc_mean_BC <- function(..., n_bc, q) {
 }
 
 #' Plot pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova).
-#' @param corr_values_before Matrix with pearson correlation coefficient between markers before RUCova.
-#' @param corr_values_after  Matrix with pearson correlation coefficient between markers after RUCova.
+#' @param lower Matrix with pearson correlation coefficient between markers eg.: before RUCova, to be plotted in the lower triangle.
+#' @param upper  Matrix with pearson correlation coefficient between markers eg.: after RUCova, to be plotted in the upper triangle.
 #' @return #A heatmap
 #' @examples 
-#' plot_corr_before_after(corr_values_before,corr_values_after)
+#' heatmap_compare_corr(lower,upper)
 #' @export
 #'
 #'
