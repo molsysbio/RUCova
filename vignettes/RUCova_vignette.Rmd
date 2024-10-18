@@ -59,14 +59,14 @@ Run the following in R:
 ```{r, message = FALSE}
 remotes::install_github("molsysbio/RUCova")
 library(RUCova)
-library(dplyr)
 library(ggplot2)
 library(tidyr)
 library(tibble)
-library(ComplexHeatmap)
-library(circlize)
-library(Matrix)
-
+library(dplyr)
+#library(ComplexHeatmap)
+#library(circlize)
+#library(Matrix)
+#library(base)
 theme_set(theme_classic())
 ```
 

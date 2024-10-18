@@ -11,6 +11,7 @@
 #' @import ComplexHeatmap
 #' @import circlize
 #' @import Matrix
+#' @import gpar
 
 calc_mean_DNA <- function(..., q) {
   asinh_input <- asinh(rbind(...))
@@ -57,7 +58,6 @@ calc_mean_BC <- function(..., n_bc, q) {
 #' @return #A heatmap
 #' @examples 
 #' plot_corr_before_after(corr_values_before,corr_values_after)
-#'
 #' @export
 #'
 #'
