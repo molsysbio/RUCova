@@ -3,4 +3,5 @@
 .RData
 .httr-oauth
 .DS_Store
+.csv
 inst/doc
