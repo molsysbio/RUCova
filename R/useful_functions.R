@@ -1,10 +1,3 @@
-
-library(dplyr)
-library(ComplexHeatmap)
-library(circlize)
-library(Matrix)
-
-
 #' Calculated mean of normalised Iridium isotopes
 #'
 #' @param ... Channels to average in linear scale. Asinh transformation is applied within the function.
@@ -14,7 +7,11 @@ library(Matrix)
 #' data |> mutate(mean_DNA = RUCova::calc_mean_DNA(DNA_191Ir, DNA_193Ir, q = 0.95)))
 #'
 #' @export
-#'
+#' @import dplyr
+#' @import ComplexHeatmap
+#' @import circlize
+#' @import Matrix
+
 calc_mean_DNA <- function(..., q) {
   asinh_input <- asinh(rbind(...))
 
