@@ -1,10 +1,12 @@
 ---
-title: "RUCova: Removal of Unwanted Covariance in mass cytometry data"
+title: "Removing Unwanted Covariance in mass cytometry data with RUCova"
+geometry: "left=1cm,right=1cm,top=1cm,bottom=1cm"
 output: 
   rmarkdown::html_vignette:
     toc: TRUE
+    toc_depth: 2
 vignette: >
-  %\VignetteIndexEntry{RUCova's vignette}
+  %\VignetteIndexEntry{Removing Unwanted Covariance in mass cytometry data with RUCova}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -16,7 +18,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-## A brief overview
+# A brief overview
 
 Here we present the R package RUCova, a novel method designed to address confounding factors such as heterogeneous cell size and staining efficiency in mass cytometry data. RUCova removes unwanted covariance using multivariate linear regression based on Surrogates of Unwanted Covariance (SUCs), and Principal Component Analysis (PCA).
 
@@ -47,27 +49,31 @@ Rosario Astaburuaga-García, Thomas Sell, Samet Mutlu, Anja Sieber, Kirsten Laub
 bioRxiv 2024.05.24.595717; 
 https://doi.org/10.1101/2024.05.24.595717
 
-## Install RUCova and call dependencies
+# Install RUCova and import libraries
 
 Run the following in R:
 
-```{r}
+```{r, message = FALSE}
 remotes::install_github("molsysbio/RUCova")
 library(RUCova)
 library(dplyr)
 library(ggplot2)
 library(tidyr)
 library(tibble)
+library(ComplexHeatmap)
+library(circlize)
+library(Matrix)
+
 theme_set(theme_classic())
 ```
 
-## Input data
+# Input data
 
 Let's first go through each input of RUCova.
 
-### data
+## data
 
-data: A tibble containing mass cytometry data of single-cell marker signals [rows = cells, columns = markers and metadata] in linear scale. This data set should be clean, meaning you excluded beads, debris, doublets, dead cells, and single-cells are demultiplexed.
+Is a tibble containing mass cytometry data of single-cell marker signals [rows = cells, columns = markers and metadata] in linear scale. This data set should be clean, meaning you excluded beads, debris, doublets, dead cells, and single-cells are demultiplexed (important if you want to adapt the linear fits to the samples).
 
 In this example we offer a mass cytometry data set consisting of 8 Head-and-Neck Squamous Cell Carcinoma (HNSCC) lines in irradiated (10 Gy) and control (0 Gy) conditions (Figure 2 and Figure 3 in the manuscript).
 
@@ -84,7 +90,7 @@ First, we add an id per cell to be able to do a cell-wise signals value modifica
 data <- data |> mutate(cell_id = 1:n())
 ```
 
-### markers
+## markers
 
 A vector of markers$m$,for which we want to regress out the unwanted covariance. In this example:
 
@@ -94,13 +100,13 @@ m <- c("pH3","IdU","Cyclin_D1","Cyclin_B1", "Ki.67","pRb","pH2A.X","p.p53","p.p3
 
 The character variables in the vectors `x` (surrogates) and `m` (markers) must be findable as column names in the tibble `data`.
 
-### SUCs
+## SUCs
 
 Since cell volume and labeling efficiency cannot be directly measured with mass cytometry, we use four \underline{S}urrogates of sources of \underline{U}nwanted \underline{C}ovariance (SUCs):  
 
 $\vec{x}_i = [\rm{mean~DNA_i},\rm{mean~highest~BC}_i,\rm{total~ERK_i},\rm{pan~Akt_i}]$
 
-#### Mean DNA: Mean value of normalised iridium channels
+### Mean DNA: Mean value of normalised iridium channels
 
 $\rm{mean~DNA}_i = \frac{Ir191_{norm,i} + Ir193_{norm,i}}{2}$, where$\rm Ir191_{norm}$and$\rm Ir193_{norm}$are the percentile-normalised intensities (e.g., to the 95th percentile) of the iridium intercalators serving as DNA stains for each cell$i$. 
 
@@ -112,7 +118,7 @@ data <- data |>
                                           q = 0.95))
 ```
 
-#### Mean BC: Mean value of the highest (used) barcoding isotopes per cell:
+### Mean BC: Mean value of the highest (used) barcoding isotopes per cell:
 
 $\rm{mean~highest~BC}_i = \frac{1}{N_{BC}}\sum_{k=1}^{N_{BC}}{BC_{i,k,norm}}$, where$\rm BC_{norm}$are the percentile-normalised intensities of the barcoding isotopes across all cells (\textit{e.g.,} to the 95th percentile),$\rm N_{BC}$is the number of barcoding isotopes used per cell (e.g.:$\rm N_{BC}$= 3 for the Fluidigm kit of Palladium isotopes),  and$\rm BC_k$is the barcoding isotope with the k-th highest signal in cell$i$, meaning the isotope was used in that cell to barcode it. 
 
@@ -128,7 +134,7 @@ data <- data |>
                                         q = 0.95))
 ```
 
-#### pan Akt and total ERK
+### pan Akt and total ERK
 
 The surrogates pan Akt and total ERK are markers included in our mass cytometry panel. 
 
@@ -140,7 +146,7 @@ Now we define our vector of SUCs as:
 x = c("total_ERK", "pan_Akt", "mean_DNA", "mean_BC")
 ```
 
-#### PCA
+### PCA
 
 SUCs can also be linearly transformed into a new coordinate system by applying Principal Component Analysis. By doing this, users can decide the extent of unwanted correlation to be removed by using eg.: only PC1 as a predictive variable in the univariate model, or PC1 to PC2, or all PCs equivalent to taking all surrogates as predictive variables (more examples below).
 
@@ -153,15 +159,15 @@ pca <- data |>
 
 ```
 
-### apply_asinh_SUCs 
+## apply_asinh_SUCs 
 
 Apply (TRUE) or not (FALSE) asinh transformation to the SUCs. TRUE if SUCs are the measured surrogates ($x$), FALSE if SUCs are PCs.
 
-### model
+## model
 
 A character: `simple`, `offset` or `interaction` defining the linear model to be used. Here we offer a quick description of each model and their rationale.
 
-#### M1: Simple 
+### M1: Simple 
 
 Consists of one fit per measured marker$y^m_i$across the entire data set.
 
@@ -170,7 +176,7 @@ $$   M_1(\vec{x}_{i}) = \underbrace{\beta^m}_{=O_1^m} + \underbrace{\sum_{p = 1}
 This is suitable when the data set includes one cell line/organoid/biological system with multiple perturbations, and the goal is to evaluate the treatment effect across these perturbations. We recommend this model when the relationship between marker abundance and the source of confounding factors (slope) is theoretically thought to be consistent across the data set. 
 
 
-#### M2: Offset 
+### M2: Offset 
 
 Consists of one fit per measured marker$y^m_i$and sample$j_i$. The fits for the samples share the same slope, while differing in the intercept (offset term$O^m_2(j_i)$). Samples$j_i$can be either different cell lines, perturbations, conditions, metacells (clusters), or even batches. 
 
@@ -179,7 +185,7 @@ $M_2(\vec{x}_{i},j_i) = \underbrace{\beta^m_{j_i}}_{=O_2^m(j_i)} + \underbrace{\
 The offset - intercept - term $O^m$ can either represent desired variation between samples (`keep_offset = TRUE`) or unwanted variation (`keep_offset = FALSE`). If the offset is considered wanted, the output from the offset model will closely resemble that of the simple model. However, the offset model becomes particularly important when the variation between samples is unwanted, such as when different samples represent batches and the goal is to remove batch effects.
 
 
-#### M3: Interaction 
+### M3: Interaction 
 
 
 Consists of one fit per measured marker$y_i^m$and sample$j_i$. The fits for the samples can have different slopes (interaction term$S_3^m(\vec{x_i},j_i)$) and intercepts (offset term$O_3^m(j_i)$). 
@@ -187,11 +193,11 @@ $M_3(\vec{x}_{i},j_i) = \underbrace{\beta^m_{j_i}}_{=O_3^m(j_i)} + \underbrace{\
 
 This model is ideal for datasets with different cell types (e.g., immune cells) or when comparing treatment effects across different cell lines with varying relationships between marker abundance and the source of unwanted covariance (e.g., cell size). Similarly, when removing batch effects is desired, fitting an interaction model per batch and removing the offset between fits can be effective (`keep_offset = FALSE`).
 
-### col_name_sample 
+## col_name_sample 
 
 A character indicating the column name in `data` defining each sample (cell lines, batches, treatments, etc). Clarifying examples are below. 
 
-### center_SUCs 
+## center_SUCs 
 
 A character `across_samples` or `per_sample` defining how to zero-center the SUCs.
 
@@ -211,7 +217,7 @@ knitr::include_graphics("Figure_1_methods_persample.png")
 ```
 
 
-### keep_offset 
+## keep_offset 
 
 As written above, the RUCova method eliminates the dependency of each measured marker on the SUCs by computing the model's residuals and the intercept as the revised expression for each marker ($y^{m*}_i$). If the offset between samples$O^m(j_i$is a desired covariance (e.g.: cell lines), then `keep_offset = TRUE`, and the modified value of the marker is described by:
 $y^{*m}_i(j_i) = O_1^m(j_i) + \epsilon^m_i$, where $\epsilon^m_i$ are the residuals of the model.
@@ -220,11 +226,11 @@ $y^{*m}_i(j_i) = \epsilon^m_i$.
 
 
 
-## Zero values
+# Zero values
 
 RUCova fits the chosen linear model including the zero values. By removing the correlation with the SUCs, zeros will get a value accordingly. Hence, RUCova addresses the issue of zero-values in mass cytometry data by assigning non-zero values while simultaneously removing such covariance. Examples below will further clarify this point.
 
-## Output data
+# Output data
 
 The output of the function `rucova` is a list containing:
 
@@ -247,10 +253,10 @@ where$SS_{res} = \sum_i \epsilon_i^2$is the residual sum of squares,$\epsilon_i$
 $\alpha^{m*}_{j_i,x_{i,p}} = \alpha^m_{j_i,x_{i,p}}\cdot \frac{\sigma_{x_{j_i,p}}}{\sigma_{y^m_{j_i}}}$
 
 
-## Examples
+# Examples
 
 
-### M1: Simple model
+## M1: Simple model
 
 As we have multiple cancer cell lines in the current data set, we run the simple model in only one cell line and across control and treated condition.
 
@@ -258,9 +264,7 @@ As we have multiple cancer cell lines in the current data set, we run the simple
 data_Cal33 <-  data |> filter(line == "Cal33")
 ```
 
-#### Correlation coefficients
-
-Symmetric matrix
+Let's give a look at the pearson correlation coefficients between markers before applying RUCova (symmetric matrix):
 
 ```{r, fig.height=10, fig.width=10}
 corr_cal33 <- data_Cal33 |>
@@ -271,9 +275,9 @@ corr_cal33 <- data_Cal33 |>
 RUCova:: heatmap_compare_corr(corr_cal33,corr_cal33) #same in lower and upper triangle
 ```
 
-#### Remove correlations
+### Remove correlations
 
-##### with all surrogates, maintaing the logFC between treated and control
+#### with all surrogates, maintaing the logFC between treated and control
 
 Let's say you're not convinced yet by the package, so you want to be conservative and remove correlations to all SUCs but not the logFC between conditions. In this case, `center_SUCs = "per_sample"`.
 
@@ -313,7 +317,7 @@ heatmap_compare_corr(lower = data_Cal33 |>
 
 Log fold-changes between irradiated and control condition are kept (positive means higher in irradiated).
 
-```{r}
+```{r, fig.height=10, fig.width=10}
 data_Cal33 |> 
   mutate_at(vars(x,m), asinh) |> 
   pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
@@ -336,7 +340,7 @@ data_Cal33 |>
 
 ```
 
-##### with all surrogates, changing logFC between samples accordingly
+#### with all surrogates, changing logFC between samples accordingly
 
 As radiation changes the cell volume, we think differences in protein intensities between treated and control are confounded. Hence, we want to remove any difference that correlates with the SUCs (`center_SUCs = "across_sample"`).
 
@@ -370,7 +374,7 @@ heatmap_compare_corr(lower = data_Cal33 |>
 
 Log fold-changes between irradiated and control condition are modified accordingly (positive means higher in irradiated).
 
-```{r}
+```{r, fig.height=10, fig.width=10}
 data_Cal33 |> 
   mutate_at(vars(x,m), asinh) |> 
   pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
@@ -393,7 +397,7 @@ data_Cal33 |>
 
 ```
 
-##### with PC1 only
+#### with PC1 only
 
 Let's imagine you want to be conservative and only remove correlations between markers and PC1 (of SUCs).
 
@@ -473,7 +477,7 @@ heatmap_compare_corr(lower = data_Cal33 |>
 
 Log fold-changes between irradiated and control condition are modified accordingly (positive means higher in irradiated).
 
-```{r}
+```{r, fig.height=10, fig.width=10}
 data_Cal33 |> 
   mutate_at(vars(x,m), asinh) |> 
   pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
@@ -498,7 +502,7 @@ data_Cal33 |>
 
 
 
-### M2: Offset model 
+## M2: Offset model 
 
 <!-- #### Fit  -->
 
@@ -512,7 +516,7 @@ data_Cal33 |>
 
 <!-- When it is essential to maintain fold changes between conditions while removing correlations within each condition, the offset model is appropriate on SUCs centered by condition. This approach is particularly useful when analyzing multiple conditions where the slope may remain consistent, but the intercept may vary. This model  -->
 
-### M3: Interaction model
+## M3: Interaction model
 
 
 <!-- Consists of one fit per measured marker$y_i^m$and sample$j_i$. The fits for the samples can have different slopes (interaction term$S_3^m(\vec{x_i},j_i)$) and intercepts (offset term$O_3^m(j_i)$).  -->
