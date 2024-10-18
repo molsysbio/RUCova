@@ -18,10 +18,13 @@ library(RUCova)
 
 ### 2. Define the data frame, SUCs, and markers
 
-```data```: a mass cytometry data set containing the single-cell marker signals [rows = cells, columns = markers and metadata] in linear scale. Do not apply any mathematical transformation to the signals.
+```data```: a mass cytometry data set containing the single-cell marker signals [rows = cells, columns = markers and metadata] in linear scale. Do not apply any mathematical transformation to the signals. In this example we offer a mass cytometry data set consisting of 8 Head-and-Neck Squamous Cell Carcinoma (HNSCC) lines in irradiated (10 Gy) and control (0 Gy) conditions (Figure 2 and Figure 3 in the manuscript).
+
 
 ```
-data <- as_tibble(read.csv("cytof_dataset_HNSCC.csv", stringsAsFactors = FALSE))
+data <- RUCova::HNSCC_data
+colnames(data) <- make.names(colnames(data)) #not needed here but frequently necessary
+
 ```
 
 First, we add an id per cell to be able to do a cell-wise comparison of signals before and after RUCova:
