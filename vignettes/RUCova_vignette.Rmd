@@ -58,7 +58,7 @@ Run the following in R:
 
 ```{r, message = FALSE}
 library(remotes)
-remotes::install_github("molsysbio/RUCova")
+remotes::install_github("molsysbio/RUCova", build_vignettes = TRUE, force = TRUE)
 library(RUCova)
 library(ggplot2)
 library(tidyr)
