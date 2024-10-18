@@ -5,3 +5,5 @@
 .DS_Store
 .csv
 inst/doc
+/doc/
+/Meta/
