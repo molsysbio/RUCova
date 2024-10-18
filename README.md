@@ -12,7 +12,7 @@ bioRxiv 2024.05.24.595717; doi: https://doi.org/10.1101/2024.05.24.595717
 Run the following in R:
 
 ```
-remotes::install_github("molsysbio/RUCova")
+remotes::install_github("molsysbio/RUCova", build_vignettes = TRUE, force = TRUE)
 library(RUCova)
 ```
 
