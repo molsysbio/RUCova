@@ -24,6 +24,7 @@ Imports:
     Matrix,
     ComplexHeatmap,
     grid,
+    remotes,
     circlize,
 VignetteBuilder: knitr
 Depends: 

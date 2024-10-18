@@ -4,7 +4,7 @@
 #' @param q Quantile for normalisation.
 #' @return A vector.
 #' @examples 
-#' data |> mutate(mean_DNA = RUCova::calc_mean_DNA(DNA_191Ir, DNA_193Ir, q = 0.95)))
+#' data |> mutate(mean_DNA = RUCova::calc_mean_DNA(DNA_191Ir, DNA_193Ir, q = 0.95))
 #'
 #' @export
 #' @import dplyr

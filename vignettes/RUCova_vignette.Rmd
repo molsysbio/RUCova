@@ -57,6 +57,7 @@ https://doi.org/10.1101/2024.05.24.595717
 Run the following in R:
 
 ```{r, message = FALSE}
+library(remotes)
 remotes::install_github("molsysbio/RUCova")
 library(RUCova)
 library(ggplot2)
@@ -81,9 +82,10 @@ Is a tibble containing mass cytometry data of single-cell marker signals [rows =
 In this example we offer a mass cytometry data set consisting of 8 Head-and-Neck Squamous Cell Carcinoma (HNSCC) lines in irradiated (10 Gy) and control (0 Gy) conditions (Figure 2 and Figure 3 in the manuscript).
 
 ```{r}
-data <- as_tibble(read.csv("cytof_dataset_HNSCC.csv", stringsAsFactors = FALSE))
+data <- RUCova::HNSCC_data
 colnames(data) <- make.names(colnames(data)) #not needed here but frequently necessary
-data |> count(line,dose)
+ 
+head(data)
 
 ```
 
@@ -111,7 +113,7 @@ $\vec{x}_i = [\rm{mean~DNA_i},\rm{mean~highest~BC}_i,\rm{total~ERK_i},\rm{pan~Ak
 
 ### Mean DNA: Mean value of normalised iridium channels
 
-$\rm{mean~DNA}_i = \frac{Ir191_{norm,i} + Ir193_{norm,i}}{2}$, where$\rm Ir191_{norm}$and$\rm Ir193_{norm}$are the percentile-normalised intensities (e.g., to the 95th percentile) of the iridium intercalators serving as DNA stains for each cell$i$. 
+$\rm{mean~DNA}_i = \frac{Ir191_{norm,i} + Ir193_{norm,i}}{2}$, where $\rm Ir191_{norm}$ and $\rm Ir193_{norm}$ are the percentile-normalised intensities (e.g., to the 95th percentile) of the iridium intercalators serving as DNA stains for each cell$i$. 
 
 The RUCova function called `RUCova::calc_mean_DNA` applies the `asinh()` function and adjusts the transformed distributions of the iridium isotopes (Ir191 and Ir193) by matching a specific percentile `q` to take then the mean value of these two signals per cell. The function returns a vector with the mean DNA signals in linear scale, as it applies the inverse transformation `sinh()`.
 
@@ -141,7 +143,7 @@ data <- data |>
 
 The surrogates pan Akt and total ERK are markers included in our mass cytometry panel. 
 
-**The selection of SUCs should be strategically aligned with the biological system, experimental framework, and specific markers involved. In this investigation, our mass cytometry panel is primarily focused on the MAPK pathway and its interactions. Consequently, selecting total ERK and pan Akt as SUCs is deemed suitable. Nonetheless, we are aware that these markers may not always be optimal in other scenarios due to possible variations. Alternatively, markers such as metabolic enzymes like GAPDH present a viable option. Although GAPDH was not tested in our study, we recognize its importance and frequent use as a control in western blots.**
+*The selection of SUCs should be strategically aligned with the biological system, experimental framework, and specific markers involved. In this investigation, our mass cytometry panel is primarily focused on the MAPK pathway and its interactions. Consequently, selecting total ERK and pan Akt as SUCs is deemed suitable. Nonetheless, we are aware that these markers may not always be optimal in other scenarios due to possible variations. Alternatively, markers such as metabolic enzymes like GAPDH present a viable option. Although GAPDH was not tested in our study, we recognize its importance and frequent use as a control in western blots.*
 
 Now we define our vector of SUCs as:
 
@@ -164,7 +166,7 @@ pca <- data |>
 
 ## apply_asinh_SUCs 
 
-Apply (TRUE) or not (FALSE) asinh transformation to the SUCs. TRUE if SUCs are the measured surrogates ($x$), FALSE if SUCs are PCs.
+Apply (`TRUE`) or not (`FALSE`) asinh transformation to the SUCs. `TRUE` if SUCs are the measured surrogates ($x$), `FALSE` if SUCs are PCs.
 
 ## model
 
@@ -174,16 +176,16 @@ A character: `simple`, `offset` or `interaction` defining the linear model to be
 
 Consists of one fit per measured marker$y^m_i$across the entire data set.
 
-$$   M_1(\vec{x}_{i}) = \underbrace{\beta^m}_{=O_1^m} + \underbrace{\sum_{p = 1}^{N_{SUC}} \alpha^m_{p} \cdot x_{i,p}}_{=S^m_1(\vec{x}_{i})}\$$, where$\beta_0^m$is the intercept and$\alpha_p^m$is the slope coefficient for each predictor or SUC$p$.
+$$ M_1(\vec{x}_{i}) = \underbrace{\beta^m}_{=O_1^m} + \underbrace{\sum_{p = 1}^{N_{SUC}} \alpha^m_{p} \cdot x_{i,p}}_{=S^m_1(\vec{x}_{i})}\ $$, where $\beta_0^m$ is the intercept and $\alpha_p^m$ is the slope coefficient for each predictor or SUC $p$.
 
 This is suitable when the data set includes one cell line/organoid/biological system with multiple perturbations, and the goal is to evaluate the treatment effect across these perturbations. We recommend this model when the relationship between marker abundance and the source of confounding factors (slope) is theoretically thought to be consistent across the data set. 
 
 
 ### M2: Offset 
 
-Consists of one fit per measured marker$y^m_i$and sample$j_i$. The fits for the samples share the same slope, while differing in the intercept (offset term$O^m_2(j_i)$). Samples$j_i$can be either different cell lines, perturbations, conditions, metacells (clusters), or even batches. 
+Consists of one fit per measured marker $y^m_i$ and sample $j_i$. The fits for the samples share the same slope, while differing in the intercept (offset term $O^m_2(j_i)$). Samples $j_i$ can be either different cell lines, perturbations, conditions, metacells (clusters), or even batches. 
 
-$M_2(\vec{x}_{i},j_i) = \underbrace{\beta^m_{j_i}}_{=O_2^m(j_i)} + \underbrace{\sum_{p = 1}^{N_{SUC}} \alpha^m_{p} \cdot x_{i,p}}_{=S_2^m(\vec{x}_{i})}\$
+$$ M_2(\vec{x}_{i},j_i) = \underbrace{\beta^m_{j_i}}_{=O_2^m(j_i)} + \underbrace{\sum_{p = 1}^{N_{SUC}} \alpha^m_{p} \cdot x_{i,p}}_{=S_2^m(\vec{x}_{i})} $$
 
 The offset - intercept - term $O^m$ can either represent desired variation between samples (`keep_offset = TRUE`) or unwanted variation (`keep_offset = FALSE`). If the offset is considered wanted, the output from the offset model will closely resemble that of the simple model. However, the offset model becomes particularly important when the variation between samples is unwanted, such as when different samples represent batches and the goal is to remove batch effects.
 
@@ -191,8 +193,9 @@ The offset - intercept - term $O^m$ can either represent desired variation betwe
 ### M3: Interaction 
 
 
-Consists of one fit per measured marker$y_i^m$and sample$j_i$. The fits for the samples can have different slopes (interaction term$S_3^m(\vec{x_i},j_i)$) and intercepts (offset term$O_3^m(j_i)$). 
-$M_3(\vec{x}_{i},j_i) = \underbrace{\beta^m_{j_i}}_{=O_3^m(j_i)} + \underbrace{\sum_{p = 1}^{N_{SUC}} \alpha^m_{j_i,p} \cdot x_{i,p}}_{=S_3^m(\vec{x}_{i},j_i)}\$
+Consists of one fit per measured marker $y_i^m$ and sample $j_i$. The fits for the samples can have different slopes (interaction term $S_3^m(\vec{x_i},j_i)$) and intercepts (offset term $O_3^m(j_i)$). 
+
+$$ M_3(\vec{x}_{i},j_i) = \underbrace{\beta^m_{j_i}}_{=O_3^m(j_i)} + \underbrace{\sum_{p = 1}^{N_{SUC}} \alpha^m_{j_i,p} \cdot x_{i,p}}_{=S_3^m(\vec{x}_{i},j_i)}\ $$
 
 This model is ideal for datasets with different cell types (e.g., immune cells) or when comparing treatment effects across different cell lines with varying relationships between marker abundance and the source of unwanted covariance (e.g., cell size). Similarly, when removing batch effects is desired, fitting an interaction model per batch and removing the offset between fits can be effective (`keep_offset = FALSE`).
 
@@ -204,15 +207,18 @@ A character indicating the column name in `data` defining each sample (cell line
 
 A character `across_samples` or `per_sample` defining how to zero-center the SUCs.
 
-Across samples: SUCs are zero-centered across all samples before applying the linear model. This is recommended when the relationship (e.g.: logFC) between samples is an unwanted covariance and it is thought to be affected by cell size or staining efficiency.
+### across samples
+
+SUCs are zero-centered across all samples before applying the linear model. This is recommended when the relationship (e.g.: logFC) between samples is an unwanted covariance and it is thought to be affected by cell size or staining efficiency.
 
 ```{r echo=FALSE, out.width = "100%", fig.align = "center",echo=FALSE,fig.cap='RUCova models centering SUCs across samples. A,B) Simple model. C,D) Offset model. E,F) Interaction model. A,C,E) Before RUCova. B,D,F) After RUCova.'}
 knitr::include_graphics("Figure_1_methods_acrosssamples.png")
 ###[] figure legend
 ```
 
+### per sample
 
-Per sample (more conservative): SUCs are zero-centered per sample applying the linear model. This is recommended when the relationship (e.g.: logFC) between samples is a desired covariance and is not affected by cell size or staining efficiency.
+SUCs are zero-centered per sample applying the linear model. This is recommended when the relationship (e.g.: logFC) between samples is a desired covariance and is not affected by cell size or staining efficiency (more conservative)
 
 ```{r echo=FALSE, out.width = "100%", fig.align = "center",echo=FALSE,fig.cap='RUCova models centering SUCs per sample. A,B) Simple model. C,D) Offset model. E,F) Interaction model. A,C,E) Before RUCova. B,D,F) After RUCova.'}
 knitr::include_graphics("Figure_1_methods_persample.png")
@@ -222,10 +228,11 @@ knitr::include_graphics("Figure_1_methods_persample.png")
 
 ## keep_offset 
 
-As written above, the RUCova method eliminates the dependency of each measured marker on the SUCs by computing the model's residuals and the intercept as the revised expression for each marker ($y^{m*}_i$). If the offset between samples$O^m(j_i$is a desired covariance (e.g.: cell lines), then `keep_offset = TRUE`, and the modified value of the marker is described by:
-$y^{*m}_i(j_i) = O_1^m(j_i) + \epsilon^m_i$, where $\epsilon^m_i$ are the residuals of the model.
+As written above, the RUCova method eliminates the dependency of each measured marker on the SUCs by computing the model's residuals and the intercept as the revised expression for each marker ($y^{m*}_i$). If the offset between samples $O^m(j_i$ is a desired covariance (e.g.: cell lines), then `keep_offset = TRUE`, and the modified value of the marker is described by:
+$$ y^{*m}_i(j_i) = O_1^m(j_i) + \epsilon^m_i $$
+, where $\epsilon^m_i$ are the residuals of the model.
 If the offset between samples is an unwanted covariance (e.g.: batches), then `keep_offset = FALSE`, and the modified value of the marker is:
-$y^{*m}_i(j_i) = \epsilon^m_i$.
+$$ y^{*m}_i(j_i) = \epsilon^m_i $$
 
 
 
@@ -247,13 +254,13 @@ All the input variables: `data`, `markers`, `SUCs`, `apply_asinh_SUCs`, `model`,
 
 `model_residuals`: the residuals of the fit $\epsilon^m_i$.
 
-`adj_r2`: adjusted R-squared or coefficient of determination to evaluate the goodness of fit for each marker. It quantify the proportion of the variance in the dependent variable (marker) that is explained by the independent variables (surrogates) in the model. The adjusted R-squared is adjusted by the number of independent variables used to predict the target variable. This is done to account for the automatic increase of$R^2$values when extra explanatory variables are added to the model. By analysing the$\rm{R^2_{adj}}$,we can determine whether adding new variables increases the model fit.
-$R_{adj}^2 = \Big(1 - \underbrace{(1-\frac{SS_{res}}{SS_{tot}}}_{R^2})\Big)\cdot\frac{n-1}{n-q-1}$
+`adj_r2`: adjusted R-squared or coefficient of determination to evaluate the goodness of fit for each marker. It quantify the proportion of the variance in the dependent variable (marker) that is explained by the independent variables (surrogates) in the model. The adjusted R-squared is adjusted by the number of independent variables used to predict the target variable. This is done to account for the automatic increase of $R^2$ values when extra explanatory variables are added to the model. By analysing the $\rm{R^2_{adj}}$,we can determine whether adding new variables increases the model fit.
+$$ R_{adj}^2 = \Big(1 - \underbrace{(1-\frac{SS_{res}}{SS_{tot}}}_{R^2})\Big)\cdot\frac{n-1}{n-q-1} $$
 
-where$SS_{res} = \sum_i \epsilon_i^2$is the residual sum of squares,$\epsilon_i$are the residuals of the model,$SS_{tot} = \sum_i(y_i - \overline{y})$is the total sum of squares,$\overline{y}$is the mean value of the marker,$n$is the sample size (total number of cells$i$) and$q$is the number of explanatory variables in the model.
+where $SS_{res} = \sum_i \epsilon_i^2$ is the residual sum of squares,$\epsilon_i$ are the residuals of the model, $SS_{tot} = \sum_i(y_i - \overline{y})$ is the total sum of squares, $\overline{y}$ is the mean value of the marker,$n$is the sample size (total number of cells $i$) and $q$ is the number of explanatory variables in the model.
 
-`stand_slopes`: We standardised the slope coefficients in order to make them comparable. In the case of the interaction model, where the slopes$\alpha^m$depend on samples$j_i$and the SUC$p$, we standardised the slope by multiplying it by the standard deviation of the corresponding SUC in each sample$j$($\sigma_{x_{j_i,p}}$) and dividing it by the standard deviation of the marker$m$in sample$j$($\sigma_{y^m_{j_i}}$) :
-$\alpha^{m*}_{j_i,x_{i,p}} = \alpha^m_{j_i,x_{i,p}}\cdot \frac{\sigma_{x_{j_i,p}}}{\sigma_{y^m_{j_i}}}$
+`stand_slopes`: We standardised the slope coefficients in order to make them comparable. In the case of the interaction model, where the slopes $\alpha^m$ depend on samples $j_i$ and the SUC $p$, we standardised the slope by multiplying it by the standard deviation of the corresponding SUC in each sample $j$ ( $\sigma_{x_{j_i,p}}$ ) and dividing it by the standard deviation of the marker $m$ in sample $j$ ($\sigma_{y^m_{j_i}}$) :
+$$\alpha^{m*}_{j_i,x_{i,p}} = \alpha^m_{j_i,x_{i,p}}\cdot \frac{\sigma_{x_{j_i,p}}}{\sigma_{y^m_{j_i}}}$$
 
 
 # Examples
