@@ -18,6 +18,8 @@ A vector.
 Calculated mean of normalised Iridium isotopes
 }
 \examples{
+library(dplyr) 
+data <- RUCova::HNSCC_data
 data |> mutate(mean_DNA = RUCova::calc_mean_DNA(DNA_191Ir, DNA_193Ir, q = 0.95))
 
 }
