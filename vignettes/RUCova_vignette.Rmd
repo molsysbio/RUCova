@@ -1,5 +1,6 @@
 ---
 title: "Removing Unwanted Covariance in mass cytometry data with RUCova"
+author: "Rosario Astaburuaga-García"
 pdf_document: null
 geometry: "left=1cm,right=1cm,top=1cm,bottom=1cm"
 output: 
@@ -58,7 +59,7 @@ Run the following in R:
 
 ```{r, message = FALSE}
 library(remotes)
-remotes::install_github("molsysbio/RUCova", build_vignettes = TRUE, force = TRUE)
+remotes::install_github("molsysbio/RUCova", force = TRUE)
 library(RUCova)
 library(ggplot2)
 library(tidyr)
