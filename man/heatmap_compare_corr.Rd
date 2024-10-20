@@ -18,5 +18,19 @@ heatmap_compare_corr(lower, upper)
 Plot pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova).
 }
 \examples{
+data <- RUCova::HNSCC_data
+m <- c("pH3","IdU","Cyclin_D1","Cyclin_B1", "Ki.67","pRb","pH2A.X","p.p53","p.p38","pChk2","pCDC25c","cCasp3","cPARP","pAkt","pAkt_T308","pMEK1.2","pERK1.2","pS6","p4e.BP1","pSmad1.8","pSmad2.3","pNF.κB","IκBα", "CXCL1","Lamin_B1", "pStat1","pStat3", "YAP","NICD")
+x <- c("mean_DNA", "mean_BC", "total_ERK", "pan_Akt")
+out <- RUCova::rucova(data, markers = m, SUCs = x, apply_asinh_SUCs = TRUE, col_name_sample = "line", 
+center_SUCs = "across_samples", model = "interaction", keep_offset = TRUE)
+data_reg <- x$data_reg
+lower <-  data |> 
+mutate_at(vars(m,x), asinh) |> 
+select(m,x) |> 
+cor(method= "pearson")
+upper <-  data_reg |> 
+mutate_at(vars(m,x), asinh) |> 
+select(m,x) |> 
+cor(method= "pearson")
 heatmap_compare_corr(lower,upper)
 }
