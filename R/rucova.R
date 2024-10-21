@@ -1,9 +1,9 @@
 # RUC function
-library(dplyr)
-library(fastDummies)
-library(tidyr)
-library(stringr)
-library(tibble)
+#library(dplyr)
+#library(fastDummies)
+#library(tidyr)
+#library(stringr)
+#library(tibble)
 
 
 #' Remove unwanted covariance

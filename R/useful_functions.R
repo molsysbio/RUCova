@@ -4,9 +4,8 @@
 #' @param q Quantile for normalisation.
 #' @return A vector.
 #' @examples 
-#' library(dplyr) 
 #' data <- RUCova::HNSCC_data
-#' data |> mutate(mean_DNA = RUCova::calc_mean_DNA(DNA_191Ir, DNA_193Ir, q = 0.95))
+#' data |> dplyr::mutate(mean_DNA = RUCova::calc_mean_DNA(DNA_191Ir, DNA_193Ir, q = 0.95))
 #'
 #' @export
 #' @import dplyr
@@ -34,9 +33,8 @@ calc_mean_DNA <- function(..., q) {
 #' @param n_bc number of barcoding isotopes per cell.
 #' @return A vector.
 #' @examples
-#' library(dplyr) 
 #' data <- RUCova::HNSCC_data
-#' data |> mutate(mean_BC = RUCova::calc_mean_BC(Pd102Di, Pd104Di, Pd105Di, Pd106Di, Pd108Di, Pd110Di, n_bc = 4, q = 0.95))
+#' data |> dplyr::mutate(mean_BC = RUCova::calc_mean_BC(Pd102Di, Pd104Di, Pd105Di, Pd106Di, Pd108Di, Pd110Di, n_bc = 4, q = 0.95))
 #' 
 #' @export
 #'

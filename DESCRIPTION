@@ -5,7 +5,7 @@ Authors@R: person("Rosario", "Astaburuaga-García", , "rosario.astaburuaga@chari
 Description: Mass cytometry data is high dimensional and contains unwanted covariance induced by variations in cell size, staining and other technical artefacts. This package uses a set of linear models to model and remove unwanted covariance from this data.   
 License: use_gpl3_license()
 Encoding: UTF-8
-biocViews: Software, ExperimentData, Workflow, SingleCell
+biocViews: Software
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Suggests: 

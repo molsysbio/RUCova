@@ -20,8 +20,7 @@ A vector.
 Calculated mean of normalised highest BC per cell
 }
 \examples{
-library(dplyr) 
 data <- RUCova::HNSCC_data
-data |> mutate(mean_BC = RUCova::calc_mean_BC(Pd102Di, Pd104Di, Pd105Di, Pd106Di, Pd108Di, Pd110Di, n_bc = 4, q = 0.95))
+data |> dplyr::mutate(mean_BC = RUCova::calc_mean_BC(Pd102Di, Pd104Di, Pd105Di, Pd106Di, Pd108Di, Pd110Di, n_bc = 4, q = 0.95))
 
 }
