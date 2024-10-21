@@ -154,5 +154,9 @@ RUCova::heatmap_compare_corr(lower = corr_reg_before, upper = corr_reg_all)
 ```
 To further evaluate the benefit of RUCova, we recommend to also perform your favorite analysis on the data before RUCova and also after RUCova, and then compare both. This can be: density plots of marker intensity signals, UMAPs, heatmap of fold-changes, Louvain clustering, etc. 
 
+For more information about RUCova and examples, check out the vignette:
 
+```
+vignette("RUCova")
+```
 
