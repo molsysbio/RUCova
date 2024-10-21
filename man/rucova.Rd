@@ -39,8 +39,10 @@ Normalised tibble with marker and surrogate values in linear scale (as the input
 Remove unwanted covariance
 }
 \examples{
+\dontrun{
 RUCova::rucova(data, markers_to_norm,SUCs = c("PC1","PC2","PC3","PC4"), apply_asinh_SUCs = FALSE, col_name_sample = "line", 
 center_SUCs = "across_samples", model = "interaction", keep_offset = TRUE)
 RUCova::rucova(data, markers_to_norm,SUCs = c("mean_DNA", "mean_BC", "total_ERK", "pan_Akt"), apply_asinh_SUCs = TRUE, col_name_sample = "line", 
 center_SUCs = "across_samples", model = "interaction", keep_offset = TRUE)
+}
 }
