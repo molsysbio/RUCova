@@ -96,7 +96,7 @@ data <- data |>
         cbind(as.data.frame(pca_sucs$x)) 
 ```
 
-Finally, we define a vector for the markers for which we want to regress out the unwanted covariance: ```markers = c("pH3","IdU","Cyclin_D1","Cyclin_B1", "Ki.67","pRb","pH2A.X","p.p53","p.p38","pChk2","pCDC25c","cCasp3","cPARP","pAkt","pAkt_T308","pMEK1.2","pERK1.2","pS6","p4e.BP1","pSmad1.8","pSmad2.3","pNF.κB","IκBα", "CXCL1","Lamin_B1", "pStat1","pStat3", "YAP","NICD")```
+Finally, we define a vector for the markers for which we want to regress out the unwanted covariance: ```markers = c("pH3","IdU","Cyclin_D1","Cyclin_B1", "Ki.67","pRb","pH2A.X","p.p53","p.p38","pChk2","pCDC25c","cCasp3","cPARP","pAkt","pAkt_T308","pMEK1.2","pERK1.2","pS6","p4e.BP1","pSmad1.8","pSmad2.3","pNFkB","IkBa", "CXCL1","Lamin_B1", "pStat1","pStat3", "YAP","NICD")```
 The character variables in the vectors ```surrogates```and ```markers``` must be findable as column names in the mass cytometry data set ```data```.
 
 ### 3. Apply RUCova
