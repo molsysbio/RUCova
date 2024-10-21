@@ -61,18 +61,16 @@ calc_mean_BC <- function(..., n_bc, q) {
 #' @param upper  Matrix with pearson correlation coefficient between markers eg.: after RUCova, to be plotted in the upper triangle.
 #' @return #A heatmap
 #' @examples 
-#' \dontrun{
 #' library(dplyr)
 #' lower <-  data |> 
 #' mutate_at(vars(m,x), asinh) |> 
 #' select(m,x) |> 
 #' cor(method= "pearson")
-#' upper <-  data_reg |> 
+#' upper <-  data_reg |> #regressed data set
 #' mutate_at(vars(m,x), asinh) |> 
 #' select(m,x) |> 
 #' cor(method= "pearson")
 #' heatmap_compare_corr(lower,upper)
-#' }
 #' @export
 #'
 #'

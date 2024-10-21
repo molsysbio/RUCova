@@ -18,16 +18,14 @@ heatmap_compare_corr(lower, upper)
 Plot pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova).
 }
 \examples{
-\dontrun{
 library(dplyr)
 lower <-  data |> 
 mutate_at(vars(m,x), asinh) |> 
 select(m,x) |> 
 cor(method= "pearson")
-upper <-  data_reg |> 
+upper <-  data_reg |> #regressed data set
 mutate_at(vars(m,x), asinh) |> 
 select(m,x) |> 
 cor(method= "pearson")
 heatmap_compare_corr(lower,upper)
-}
 }

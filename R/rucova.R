@@ -18,12 +18,16 @@ library(tibble)
 #' @param keep_offset Keep (TRUE) or not (FALSE) the offset intercept between samples.
 #' @return Normalised tibble with marker and surrogate values in linear scale (as the input).
 #' @examples 
-#' \dontrun{
-#' RUCova::rucova(data, markers_to_norm,SUCs = c("PC1","PC2","PC3","PC4"), apply_asinh_SUCs = FALSE, col_name_sample = "line", 
+#' library(dplyr)
+#' data <- RUCova::HNSCC_data
+#' data <- data |> mutate(cell_id = 1:n(),
+#'                        mean_DNA = RUCova::calc_mean_DNA(DNA_191Ir, DNA_193Ir, q = 0.95),
+#'                        mean_BC = RUCova::calc_mean_BC(Pd102Di, Pd104Di, Pd105Di, Pd106Di, Pd108Di, Pd110Di,
+#'                        Dead_cells_194Pt,Dead_cells_198Pt, n_bc = 4, q = 0.95))
+#' m <- c("pH3","IdU","Cyclin_D1","Cyclin_B1", "Ki.67","pRb","pH2A.X","p.p53","p.p38","pChk2","pCDC25c","cCasp3","cPARP","pAkt","pAkt_T308","pMEK1.2","pERK1.2","pS6","p4e.BP1","pSmad1.8","pSmad2.3","pNFkB","IkBa", "CXCL1","Lamin_B1", "pStat1","pStat3", "YAP","NICD")
+#' out <- RUCova::rucova(data, markers = m, SUCs = c("mean_DNA", "mean_BC", "total_ERK", "pan_Akt"), apply_asinh_SUCs = TRUE, col_name_sample = "line", 
 #' center_SUCs = "across_samples", model = "interaction", keep_offset = TRUE)
-#' RUCova::rucova(data, markers_to_norm,SUCs = c("mean_DNA", "mean_BC", "total_ERK", "pan_Akt"), apply_asinh_SUCs = TRUE, col_name_sample = "line", 
-#' center_SUCs = "across_samples", model = "interaction", keep_offset = TRUE)
-#' }
+#' data_reg <- out$data_reg
 #' @import dplyr
 #' @import fastDummies
 #' @import tidyr
@@ -228,6 +232,6 @@ rucova <- function(data, markers, SUCs, apply_asinh_SUCs, model = "interaction",
   # Output ------------------------------------
   
   out_ruc <- list(data_reg, markers, SUCs, apply_asinh_SUCs, model,col_name_sample,center_SUCs, keep_offset, col_name_sample, model_formula, model_coefficients.new,eff_coefficients, model_residuals.new, adjr2.new, stand_slopes)
-  names(out_ruc) <- c("data_reg", "markers", "SUCs", "apply_asinh_SUCs", "model", "col_name_sample", "center_SUCs", "keep_offset", "model_formula", "model_coefficients","eff_coefficients", "model_residuals", "adjr2", "stand_slopes")
+  names(out_ruc) <- c("data_reg", "markers", "SUCs", "apply_asinh_SUCs", "model", "col_name_sample", "center_SUCs", "keep_offset", "col_name_sample", "model_formula", "model_coefficients","eff_coefficients", "model_residuals", "adjr2", "stand_slopes")
   return(out_ruc)
 }
