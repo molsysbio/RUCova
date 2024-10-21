@@ -101,7 +101,7 @@ data <- data |> mutate(cell_id = 1:n())
 A vector of markers$m$,for which we want to regress out the unwanted covariance. In this example:
 
 ```{r}
-m <- c("pH3","IdU","Cyclin_D1","Cyclin_B1", "Ki.67","pRb","pH2A.X","p.p53","p.p38","pChk2","pCDC25c","cCasp3","cPARP","pAkt","pAkt_T308","pMEK1.2","pERK1.2","pS6","p4e.BP1","pSmad1.8","pSmad2.3","pNF.κB","IκBα", "CXCL1","Lamin_B1", "pStat1","pStat3", "YAP","NICD")
+m <- c("pH3","IdU","Cyclin_D1","Cyclin_B1", "Ki.67","pRb","pH2A.X","p.p53","p.p38","pChk2","pCDC25c","cCasp3","cPARP","pAkt","pAkt_T308","pMEK1.2","pERK1.2","pS6","p4e.BP1","pSmad1.8","pSmad2.3","pNFkB","IkBa", "CXCL1","Lamin_B1", "pStat1","pStat3", "YAP","NICD")
 ```
 
 The character variables in the vectors `x` (surrogates) and `m` (markers) must be findable as column names in the tibble `data`.
