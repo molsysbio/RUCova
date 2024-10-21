@@ -80,7 +80,7 @@ Let's first go through each input of RUCova.
 
 Is a tibble containing mass cytometry data of single-cell marker signals [rows = cells, columns = markers and metadata] in linear scale. This data set should be clean, meaning you excluded beads, debris, doublets, dead cells, and single-cells are demultiplexed (important if you want to adapt the linear fits to the samples).
 
-In this example we offer a mass cytometry data set consisting of 8 Head-and-Neck Squamous Cell Carcinoma (HNSCC) lines in irradiated (10 Gy) and control (0 Gy) conditions (Figure 2 and Figure 3 in the manuscript).
+In this example we offer a mass cytometry data set consisting of 8 Head-and-Neck Squamous Cell Carcinoma (HNSCC) lines in irradiated (10 Gy) and control (0 Gy) conditions. The original data set consists of 108649 cells in total (Figure 2 and Figure 3 in the manuscript). To comply with Bioconductor regulations on the size limit, we randomly subsampled this data set to 1000 cells per cell line. 
 
 ```{r}
 data <- RUCova::HNSCC_data

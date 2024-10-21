@@ -18,9 +18,8 @@
 #' @param keep_offset Keep (TRUE) or not (FALSE) the offset intercept between samples.
 #' @return Normalised tibble with marker and surrogate values in linear scale (as the input).
 #' @examples 
-#' library(dplyr)
 #' data <- RUCova::HNSCC_data
-#' data <- data |> mutate(cell_id = 1:n(),
+#' data <- data |> dplyr::mutate(cell_id = 1:n(),
 #'                        mean_DNA = RUCova::calc_mean_DNA(DNA_191Ir, DNA_193Ir, q = 0.95),
 #'                        mean_BC = RUCova::calc_mean_BC(Pd102Di, Pd104Di, Pd105Di, Pd106Di, Pd108Di, Pd110Di,
 #'                        Dead_cells_194Pt,Dead_cells_198Pt, n_bc = 4, q = 0.95))
@@ -42,7 +41,7 @@ rucova <- function(data, markers, SUCs, apply_asinh_SUCs, model = "interaction",
 
   # Type of model ------------------------------------
   if (model == "offset" || model == "interaction" || center_SUCs == "per_sample") {
-    if (missing(col_name_sample)){
+    if (missing(col_name_sample) == TRUE){
       stop("Please specify argument `col_name_sample`")
 
     }
@@ -151,7 +150,7 @@ rucova <- function(data, markers, SUCs, apply_asinh_SUCs, model = "interaction",
       as.numeric(as.vector(unlist(model_residuals.new[m]))) + # residuals
       as.numeric(model_coefficients.new[model_coefficients.new$marker == m, 2])   # intercept for all
 
-    if (isTRUE(keep_offset)) {
+    if (keep_offset == TRUE) {
       for (i in dummy_sample_var) {
         new_values[m] <- pull(new_values,m) +
           as.numeric(model_coefficients.new[model_coefficients.new$marker == m, i]) * pull(dt, i) # offset_model

@@ -39,9 +39,8 @@ Normalised tibble with marker and surrogate values in linear scale (as the input
 Remove unwanted covariance
 }
 \examples{
-library(dplyr)
 data <- RUCova::HNSCC_data
-data <- data |> mutate(cell_id = 1:n(),
+data <- data |> dplyr::mutate(cell_id = 1:n(),
                        mean_DNA = RUCova::calc_mean_DNA(DNA_191Ir, DNA_193Ir, q = 0.95),
                        mean_BC = RUCova::calc_mean_BC(Pd102Di, Pd104Di, Pd105Di, Pd106Di, Pd108Di, Pd110Di,
                        Dead_cells_194Pt,Dead_cells_198Pt, n_bc = 4, q = 0.95))
