@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# A brief overview
+# Introduction
 
 Here we present the R package RUCova, a novel method designed to address confounding factors such as heterogeneous cell size and staining efficiency in mass cytometry data. RUCova removes unwanted covariance using multivariate linear regression based on Surrogates of Unwanted Covariance (SUCs), and Principal Component Analysis (PCA).
 
@@ -53,22 +53,22 @@ Rosario Astaburuaga-García, Thomas Sell, Samet Mutlu, Anja Sieber, Kirsten Laub
 bioRxiv 2024.05.24.595717; 
 https://doi.org/10.1101/2024.05.24.595717
 
-# Install RUCova and import libraries
+# Installation
 
 Run the following in R:
 
-```{r, message = FALSE}
+```{r, eval = FALSE, message = FALSE}
+remotes::install_github("molsysbio/RUCova@vignette-update", force = TRUE)
+```
+
+
+```{r, eval = TRUE, message = FALSE}
 library(remotes)
-#remotes::install_github("molsysbio/RUCova", force = TRUE)
 library(RUCova)
 library(ggplot2)
 library(tidyr)
 library(tibble)
 library(dplyr)
-#library(ComplexHeatmap)
-#library(circlize)
-#library(Matrix)
-#library(base)
 theme_set(theme_classic())
 ```
 
@@ -80,20 +80,19 @@ Let's first go through each input of RUCova.
 
 Is a tibble containing mass cytometry data of single-cell marker signals [rows = cells, columns = markers and metadata] in linear scale. This data set should be clean, meaning you excluded beads, debris, doublets, dead cells, and single-cells are demultiplexed (important if you want to adapt the linear fits to the samples).
 
-In this example we offer a mass cytometry data set consisting of 8 Head-and-Neck Squamous Cell Carcinoma (HNSCC) lines in irradiated (10 Gy) and control (0 Gy) conditions. The original data set consists of 108649 cells in total (Figure 2 and Figure 3 in the manuscript). To comply with Bioconductor regulations on the size limit, we randomly subsampled this data set to 1000 cells per cell line. 
+In this example we offer a mass cytometry data set consisting of 8 Head-and-Neck Squamous Cell Carcinoma (HNSCC) lines in irradiated (10 Gy) and control (0 Gy) conditions. It corresponds to the data in Figure 2 and Figure 3 of the manuscript, but subsampled to 500 cells per line and condition.
 
 ```{r}
 data <- RUCova::HNSCC_data
-colnames(data) <- make.names(colnames(data)) #not needed here but frequently necessary
- 
+colnames(data) <- make.names(colnames(data)) 
 head(data)
-
 ```
 
 First, we add an id per cell to be able to do a cell-wise signals value modification.
 
 ```{r}
-data <- data |> mutate(cell_id = 1:n())
+data <- data |> 
+  mutate(cell_id = 1:n())
 ```
 
 ## markers
@@ -214,7 +213,6 @@ SUCs are zero-centered across all samples before applying the linear model. This
 
 ```{r echo=FALSE, out.width = "100%", fig.align = "center",echo=FALSE,fig.cap='RUCova models centering SUCs across samples. A,B) Simple model. C,D) Offset model. E,F) Interaction model. A,C,E) Before RUCova. B,D,F) After RUCova.'}
 knitr::include_graphics("Figure_1_methods_acrosssamples.png")
-###[] figure legend
 ```
 
 ### per sample
@@ -223,7 +221,6 @@ SUCs are zero-centered per sample applying the linear model. This is recommended
 
 ```{r echo=FALSE, out.width = "100%", fig.align = "center",echo=FALSE,fig.cap='RUCova models centering SUCs per sample. A,B) Simple model. C,D) Offset model. E,F) Interaction model. A,C,E) Before RUCova. B,D,F) After RUCova.'}
 knitr::include_graphics("Figure_1_methods_persample.png")
-###[] figure legend
 ```
 
 
@@ -247,7 +244,7 @@ The output of the function `rucova` is a list containing:
 
 `data_reg`: data set with modified marker intensity values in linear scale.
 
-All the input variables: `data`, `markers`, `SUCs`, `apply_asinh_SUCs`, `model`, `col_name_sample`, `center_SUCs`, `keep_offset`.
+All the input variables: `data`, `markers`, `SUCs`, `apply_asinh_SUCs`, `model`, `col_name_sample`, `center_SUCs`, `keep_offset` (to remind you how you obtained this result).
 
 `model_formula`: the `lm` model formula applied to each marker to regress-out surrogates of sources of unwanted covariance.
 
@@ -286,9 +283,11 @@ corr_cal33 <- data_Cal33 |>
 RUCova:: heatmap_compare_corr(corr_cal33,corr_cal33) #same in lower and upper triangle
 ```
 
-### Remove correlations
+### Remove correlations {.tabset}
 
-#### with all surrogates, maintaing the logFC between treated and control
+#### with all surrogates {.tabset}
+
+##### maintaing the logFC between treated and control
 
 Let's say you're not convinced yet by the package, so you want to be conservative and remove correlations to all SUCs but not the logFC between conditions. In this case, `center_SUCs = "per_sample"`.
 
@@ -351,7 +350,7 @@ data_Cal33 |>
 
 ```
 
-#### with all surrogates, changing logFC between samples accordingly
+##### changing logFC between samples accordingly
 
 As radiation changes the cell volume, we think differences in protein intensities between treated and control are confounded. Hence, we want to remove any difference that correlates with the SUCs (`center_SUCs = "across_sample"`).
 
@@ -412,7 +411,6 @@ data_Cal33 |>
 
 Let's imagine you want to be conservative and only remove correlations between markers and PC1 (of SUCs).
 
-######  PCA
 
 ```{r}
 pca_cal33 <- data_Cal33 |>
@@ -450,10 +448,10 @@ data_Cal33 <- data_Cal33 |>
         cbind(as.data.frame(pca_cal33$x))
 ```
 
-In this example, PC1 has negative loadings. We will just change the direction of these loadings so PC1 positively correlates with the SUCs:
+In this example, PC1 has positive loadings. Meaning PC1 will positively correlate with the markers, which is intuitive if we think of it as the cell size. In case for your data set, PC1 has negative loadings, you can just the direction for a more intuitive analysis:
 
-```{r}
-data_Cal33 <- data_Cal33 |> mutate(PC1 = -PC1)
+```{r, eval = FALSE}
+data_Cal33 |> mutate(PC1 = -PC1) #variable not saved as not necessary here
 ```
 
 Then, `SUCs= "PC1"` and `apply_asinh_SUCs = FALSE`, as asinh transformation is not necessary on PCs (it was applied on SUCs before PCA). This applies to all models.
@@ -502,7 +500,7 @@ data_Cal33 |>
     pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
     group_by(marker) |> 
     summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
-    mutate(data = "simple all, across samples")
+    mutate(data = "simple PC1, across samples")
     
     
   ) |> 
@@ -511,92 +509,133 @@ data_Cal33 |>
 
 ```
 
+### Adjusted R-squared
+
+Let's compare the adjusted $R²$ per marker (goodness of fit, see complete definition above).
+
+```{r, fig.height=5, fig.width=10}
+simple_all_x_across$adjr2 |> mutate(model = "simple all, across samples") |> 
+  rbind(simple_all_x_persample$adjr2 |> mutate(model = "simple all, per sample")) |> 
+    rbind(simple_pc1_x$adjr2 |> mutate(model = "simple PC1, across sample")) |> 
+  ggplot(aes(x = adj_r_squared, y = marker, fill = model)) + 
+  geom_col(position = "dodge")
+
+```
+In general, across all markers, the adjusted $R^2$ is higher when using all SUCs as predictive variables (instead of just PC1) and when SUCs are center across samples (residuals are smaller). 
+
+```{r, fig.height=5, fig.width=10}
+simple_all_x_across$adjr2 |> mutate(model = "simple all, across samples") |> 
+  rbind(simple_all_x_persample$adjr2 |> mutate(model = "simple all, per sample")) |> 
+    rbind(simple_pc1_x$adjr2 |> mutate(model = "simple PC1, across sample")) |> 
+  ggplot(aes(y = adj_r_squared, x = model, color = model)) + 
+  geom_boxplot()
+
+```
+
+The decision of which model parameters to use should be based on: (1) the extent of variance to remove (all SUCs or some PCs) and (2) whether to keep or not the FC between samples.
+
+### Standardised slopes
+
+We can also compare the slopes for each marker in each model.
+
+```{r, fig.height=5, fig.width=20}
+simple_all_x_across$stand_slopes |> mutate(model = "simple all, across samples") |> 
+  rbind(simple_all_x_persample$stand_slopes |> mutate(model = "simple all, per sample")) |> 
+    rbind(simple_pc1_x$stand_slopes |> mutate(model = "simple PC1, across sample")) |> 
+  mutate(coef_key = factor(coef_key, levels = c("mean_DNA", "mean_BC","pan_Akt", "total_ERK", "PC1"))) |> 
+  ggplot(aes(x = stand_value, y = marker, fill = model)) + 
+  geom_col(position = "dodge") + 
+  facet_wrap(~coef_key, nrow = 1)
+
+```
 
 
 ## M2: Offset model 
 
-<!-- #### Fit  -->
+Here we just show one example: Let's say different samples (dose) within Cal33 are different batches, and we would like to adjust for it in addition to removing unwanted correlations with all SUCs. Then: 
 
-<!-- Consists of one fit per measured marker$y^m_i$and sample$j_i$. The fits for the samples share the same slope, while differing in the intercept (offset term$O^m_2(j_i)$). Samples$j_i$can be either different cell lines, perturbations, conditions, metacells (clusters), or even batches.  -->
+```{r}
+offset_all_x_persample <-  RUCova::rucova(data = data_Cal33, # marker intensity values in linear scale
+                                markers = m,
+                                SUCs = x, 
+                                apply_asinh_SUCs = TRUE, #when taking surrogates we need to asinh-transform them
+                                model = "offset",
+                                center_SUCs = "per_sample",
+                                col_name_sample = "dose", 
+                                keep_offset = FALSE)
 
-<!--$  M_2(\vec{x}_{i},j_i) = \underbrace{\beta^m_{j_i}}_{=O_2^m(j_i)} + \underbrace{\sum_{p = 1}^{N_{SUC}} \alpha^m_{p} \cdot x_{i,p}}_{=S_2^m(\vec{x}_{i})}\$-->
+data_reg_offset_all_persample <- offset_all_x_persample$data_reg #output of marker intensity values are also in linear scale, linear in -> linear out
+```
 
-<!-- The offset - intercept - term$O^m$for different samples can be wanted or unwanted. For the first case, the new, modified abundance of the marker after applying RUCova is independent of$\vec{x}_{i}$and can be expressed as: -->
+Fold-change between conditions ("dose") becomes zero:
 
-<!-- ### Rationale -->
+```{r}
+data_Cal33 |> 
+  mutate_at(vars(x,m), asinh) |> 
+  pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
+  group_by(marker) |> 
+  summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
+  mutate(data = "before RUCova") |> 
+  rbind(
+    
+    data_reg_offset_all_persample |> 
+    mutate_at(vars(x,m), asinh) |> 
+    pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
+    group_by(marker) |> 
+    summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
+    mutate(data = "offset all, per sample")
+    
+    
+  ) |> 
+  ggplot(aes(x = logFC, y = marker, fill = data)) + 
+  geom_col(position = "dodge")
 
-<!-- When it is essential to maintain fold changes between conditions while removing correlations within each condition, the offset model is appropriate on SUCs centered by condition. This approach is particularly useful when analyzing multiple conditions where the slope may remain consistent, but the intercept may vary. This model  -->
+```
+Different intercepts between samples:
+
+
+```{r, fig.height=5, fig.width=10}
+offset_all_x_persample$eff_coefficients |> 
+  filter(surrogate == FALSE) |> 
+  ggplot(aes(x = eff_value, y = marker, fill = sample)) + 
+  geom_col(position = "dodge") +
+  xlab("eff_value (intercept)")
+
+```
 
 ## M3: Interaction model
 
+Here we just show one example, the least conservative: we eliminate differences between cell lines that correlate with the SUCs (`center_SUCs = "across_samples"`) and apply one fit per cell line (`model = "interaction"`). Then: 
 
-<!-- Consists of one fit per measured marker$y_i^m$and sample$j_i$. The fits for the samples can have different slopes (interaction term$S_3^m(\vec{x_i},j_i)$) and intercepts (offset term$O_3^m(j_i)$).  -->
-<!--$M_3(\vec{x}_{i},j_i) = \underbrace{\beta^m_{j_i}}_{=O_3^m(j_i)} + \underbrace{\sum_{p = 1}^{N_{SUC}} \alpha^m_{j_i,p} \cdot x_{i,p}}_{=S_3^m(\vec{x}_{i},j_i)}\$-->
+```{r}
+intercept_all_x_across <-  RUCova::rucova(data = data, # marker intensity values in linear scale
+                                markers = m,
+                                SUCs = x, 
+                                apply_asinh_SUCs = TRUE, #when taking surrogates we need to asinh-transform them
+                                model = "interaction",
+                                center_SUCs = "across_samples",
+                                col_name_sample = "line", 
+                                keep_offset = FALSE)
+
+data_intercept_all_x_across <- intercept_all_x_across$data_reg #output of marker intensity values are also in linear scale, linear in -> linear out
+```
+
+Different slopes for different cell lines:
 
 
+```{r, fig.height=10, fig.width=10}
+intercept_all_x_across$eff_coefficients |> 
+  filter(surrogate != FALSE) |> 
+  ggplot(aes(x = eff_value, y = marker, fill = sample)) + 
+  geom_col(position = "dodge") +
+  facet_wrap(~surrogate) + 
+  xlab("eff_value (slope)")
 
+```
 
-<!-- Let's imagine you want to be conservative and only remove correlations between markers and PC1 (of SUCs). Then, `SUCs= "PC1"` and `apply_asinh_SUCs = FALSE`, as asinh transformation is not necessary on PCs (it was applied on SUCs before PCA). We will choose the interaction model (`model = "interaction"`), as the data set contains different cell lines (samples), and for each one, we want to allow different slopes and intercepts between marker expression and SUCs (or PCs (`col_name_sample = "line"`). Differences in marker expression between cell lines can be artificially influenced by e.g.: different cell volumes leading to an unwanted covariance. To remove these artefactual differences in marker expression we center the surrogates across samples for the linear fit (`center_SUCs = "across_samples"`). In case is desirable to keep the remaining offset between the cell lines, we set ` keep_offset = TRUE`.  -->
+## Session information
 
-<!-- ```{r} -->
-<!-- rucova_pc1 <-  RUCova::rucova(data,  -->
-<!--                               markers, -->
-<!--                               SUCs = "PC1", -->
-<!--                               apply_asinh_SUCs = FALSE, -->
-<!--                               model = "interaction", -->
-<!--                               col_name_sample = "line", -->
-<!--                               center_SUCs = "across_samples", -->
-<!--                               keep_offset = TRUE) -->
-<!-- data_reg_pc1 <- rucova_pc1$data_reg -->
-<!-- ``` -->
-
-<!-- To remove the covariance driven by all PCs (in this example, 4): -->
-
-<!-- ```{r} -->
-<!-- rucova_all <-  RUCova::rucova(data,  -->
-<!--                               markers, -->
-<!--                               SUCs= c("PC1","PC2","PC3","PC4"), -->
-<!--                               apply_asinh_SUCs = FALSE, -->
-<!--                               model = "interaction", -->
-<!--                               col_name_sample = "line", -->
-<!--                               center_SUCs = "across_samples", -->
-<!--                               keep_offset = TRUE) -->
-<!-- data_reg_all <- rucova_all$data_reg -->
-<!-- ``` -->
-
-<!-- ### Modified marker values -->
-
-<!-- The RUCova method eliminates the dependency of each measured marker on the SUCs by computing the model's residuals and the intercept as the revised expression for each marker ($y^{m*}_i$).  -->
-
-<!--$   y^{*m}_i(j_i) = O^m(j_i) + \epsilon^m_i$-->
-
-<!-- ## 4. Evaluate the benefit of RUCova -->
-
-<!-- We recommend calculating the Pearson correlation coefficients between markers and SUCs before RUCova and after RUCova, and comparing. In this example, we applied the interaction model, meaning that the unwanted correlations driven by SUCs will be removed per cell line. For this reason, we check the correlation coefficients per cell line. Let's have a look at the Cal33 cell line:  -->
-
-<!-- ```{r} -->
-<!-- corr_reg_before <- data |> filter(line == "Cal33") |>  -->
-<!--   mutate_at(vars(markers,surrogates), asinh) |>  -->
-<!--   select(markers,surrogates,PC1,PC2,PC3,PC4) |>  -->
-<!--   cor(method= "pearson") -->
-
-<!-- corr_reg_all <- data_reg_all |> filter(line == "Cal33") |>  -->
-<!--   mutate_at(vars(markers,surrogates), asinh) |>  -->
-<!--   select(markers,surrogates,PC1,PC2,PC3,PC4) |>  -->
-<!--   cor(method= "pearson") -->
-<!-- ``` -->
-
-<!-- Here, ```corr_reg_before```and ```corr_reg_all``` should be square matrices containing the Pearson correlation coefficient between markers and surrogates. Row and column names of the matrices should be the corresponding markers and surrogates. Correlation coefficients can be calculated across the entire data set (if simple model was applied) or filtered by each sample if desired (if interaction model was applied). -->
-
-<!-- Using the RUCova function ```heatmap_compare_corr()``` we can generate a square heatmap with the correlation coefficients before RUCova in the lower triangle (first argument) and after RUCova in the upper triangle (second argument) for a direct comparison: -->
-
-<!-- ```{r, fig.height=10, fig.width=10} -->
-<!-- library(Matrix) -->
-<!-- library(ComplexHeatmap) -->
-<!-- library(circlize) -->
-
-<!-- RUCova::heatmap_compare_corr(lower = corr_reg_before, upper = corr_reg_all) -->
-<!-- ``` -->
-<!-- To further evaluate the benefit of RUCova, we recommend to also perform your favorite analysis on the data before RUCova and also after RUCova, and then compare both. This can be: density plots of marker intensity signals, UMAPs, heatmap of fold-changes, Louvain clustering, etc.  -->
-
+```{r}
+sessionInfo()
+```
 
