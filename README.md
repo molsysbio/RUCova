@@ -4,7 +4,7 @@ Here we present the R package RUCova, a novel method designed to address confoun
 Citation:
 
 RUCova: Removal of Unwanted Covariance in mass cytometry data
-Rosario Astaburuaga-García, Thomas Sell, Samet Mutlu, Anja Sieber, Kirsten Lauber, Nils Blüthgen
+Rosario Astaburuaga-García, Thomas Sell, Samet Mutlu, Anja Sieber, Kirsten Lauber, Nils Blüthgen.
 Bioinformatics 2024; doi: [https://doi.org/10.1101/2024.05.24.595717](https://doi.org/10.1093/bioinformatics/btae669)
 
 ### 1. Install RUCova
