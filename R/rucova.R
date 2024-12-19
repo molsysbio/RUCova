@@ -8,14 +8,16 @@
 
 #' Remove unwanted covariance
 #'
-#' @param data A tibble with markers and SUCs in linear scale. Asinh transformation is applied within the function.
+#' @param sce A SingleCellExperiment object with markers and SUCs in linear scale. Asinh transformation is applied within the function.
+#' @param name_rucova_assay A character specifying the name of the new assay with regressed counts after RUCova
 #' @param markers Vector of marker names to normalise, y (in linear scale).
 #' @param SUCs Vector of surrogates of unwanted covariance to use for normalisation, x (in linear scale).
 #' @param apply_asinh_SUCs Apply (TRUE) or not (FALSE) asinh transformation to the SUCs. TRUE if SUCs are the measured surrogates, FALSE if SUCs are PCs.
 #' @param model A character: "simple", "offset" or "interaction" defining the model.
 #' @param col_name_sample A character indicating the column name in "data" defining each sample.
 #' @param center_SUCs A character "across_samples" or "per_sample" defining how to center the SUCs in zero.
-#' @param keep_offset Keep (TRUE) or not (FALSE) the offset intercept between samples.
+#' @param keep_offset Keep (TRUE) or not (FALSE) the offset intercept between samples.+
+#' @param name_output A character specifying the name of the output of rucova containing the model parameters and regression details. This is then saved in the metadata of the SingleCellExperiment object (sce).
 #' @return Normalised tibble with marker and surrogate values in linear scale (as the input).
 #' @examples 
 #' data <- RUCova::HNSCC_data
@@ -33,13 +35,25 @@
 #' @import stringr
 #' @import tibble
 #' @export
-rucova <- function(data, markers, SUCs, apply_asinh_SUCs, model = "interaction", col_name_sample = "line",
-                               center_SUCs = "across_samples", keep_offset = TRUE) {
+rucova <- function(sce, markers, SUCs, name_reduced_dim = "PCA", apply_asinh_SUCs, model = "interaction", col_name_sample = "line",
+                               center_SUCs = "across_samples", keep_offset = TRUE, name_output = "rucova") {
 
   # model = c("simple","offset","interaction"), interaction = slope+offset
   # keep_offset = TRUE or FALSE
-
-  # Type of model ------------------------------------
+  # if (missing(data) == TRUE){
+  #   stop("Please provide a SingleCellExperiment class or a data set")
+  #   
+  # }
+  
+  #if (inherits(data, "SingleCellExperiment")){
+  #  sce <- data
+    data <- t(assay(sce,"counts")) |> cbind(colData(sce)) |> as.data.frame()
+    
+    if (grepl("PC",SUCs)[1]){# if model is based on PCs, add this info to the data
+      data <- data |> cbind(reducedDim(sce, name_reduced_dim))
+      } 
+  
+    # Type of model ------------------------------------
   if (model == "offset" || model == "interaction" || center_SUCs == "per_sample") {
     if (missing(col_name_sample) == TRUE){
       stop("Please specify argument `col_name_sample`")
@@ -228,9 +242,21 @@ rucova <- function(data, markers, SUCs, apply_asinh_SUCs, model = "interaction",
         mutate(stand_value = eff_value * sd_x / sd_y)
     }
 
-  # Output ------------------------------------
+    
+      assay(sce, paste0("counts_",name_output)) <- data_reg |> select(rownames(sce)) |> t()
   
-  out_ruc <- list(data_reg, markers, SUCs, apply_asinh_SUCs, model,col_name_sample,center_SUCs, keep_offset, col_name_sample, model_formula, model_coefficients.new,eff_coefficients, model_residuals.new, adjr2.new, stand_slopes)
-  names(out_ruc) <- c("data_reg", "markers", "SUCs", "apply_asinh_SUCs", "model", "col_name_sample", "center_SUCs", "keep_offset", "col_name_sample", "model_formula", "model_coefficients","eff_coefficients", "model_residuals", "adjr2", "stand_slopes")
-  return(out_ruc)
+      out_ruc <- list(data_reg, markers, SUCs, apply_asinh_SUCs, model,col_name_sample,center_SUCs, keep_offset, col_name_sample, model_formula, model_coefficients.new,eff_coefficients, model_residuals.new, adjr2.new, stand_slopes)
+      names(out_ruc) <- c("data_reg", "markers", "SUCs", "apply_asinh_SUCs", "model", "col_name_sample", "center_SUCs", "keep_offset", "col_name_sample", "model_formula", "model_coefficients","eff_coefficients", "model_residuals", "adjr2", "stand_slopes")
+      
+      metadata(sce)[[name_output]] <- out_ruc
+      
+
+  # }else{
+  #   out_ruc <- list(data_reg, markers, SUCs, apply_asinh_SUCs, model,col_name_sample,center_SUCs, keep_offset, col_name_sample, model_formula, model_coefficients.new,eff_coefficients, model_residuals.new, adjr2.new, stand_slopes)
+  #   names(out_ruc) <- c("data_reg", "markers", "SUCs", "apply_asinh_SUCs", "model", "col_name_sample", "center_SUCs", "keep_offset", "col_name_sample", "model_formula", "model_coefficients","eff_coefficients", "model_residuals", "adjr2", "stand_slopes")
+  #   
+  # }
+  
+  return(sce)
 }
+  

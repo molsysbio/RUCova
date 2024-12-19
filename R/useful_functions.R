@@ -1,11 +1,10 @@
 #' Calculated mean of normalised Iridium isotopes
 #'
-#' @param ... Channels to average in linear scale. Asinh transformation is applied within the function.
+#' @param sce SingleCellExperiment object with counts in linear scale 
+#' @param dna_channels Vector specifying the names of the DNA channels
 #' @param q Quantile for normalisation.
 #' @return A vector.
 #' @examples 
-#' data <- RUCova::HNSCC_data
-#' data |> dplyr::mutate(mean_DNA = RUCova::calc_mean_DNA(DNA_191Ir, DNA_193Ir, q = 0.95))
 #'
 #' @export
 #' @import dplyr
@@ -14,21 +13,47 @@
 #' @import Matrix
 #' @import grid
 
-calc_mean_DNA <- function(..., q) {
-  asinh_input <- asinh(rbind(...))
-
-  quantiles <- apply(asinh_input, 1, quantile, probs = q, names = FALSE)
-  scaling_factors <- quantiles[[1]] / quantiles
-
-  scaled_data <- asinh_input * scaling_factors
-  means <- apply(scaled_data, 2, mean)
-
-  sinh(means)
+calc_mean_DNA <- function(data,dna_channels, q) {
+  
+  # Check if the input is a SingleCellExperiment
+  if (inherits(data, "SingleCellExperiment")){
+    sce <- data
+    dna_data <- assay(sce)[dna_channels, , drop = FALSE]
+  } else {
+    # Handle input as a data frame or matrix
+    dna_data <- t(data[,dna_channels])
+    
+  }
+  # Perform calculations
+    asinh_input <- asinh(dna_data)
+    quantiles <- apply(asinh_input, 1, quantile, probs = q, names = FALSE)
+    scaling_factors <- quantiles[[1]] / quantiles
+    scaled_data <- asinh_input * scaling_factors
+    mean_DNA <- sinh(apply(scaled_data, 2, mean))
+  
+  # Add the mean_DNA to the appropriate structure
+    if(inherits(data, "SingleCellExperiment")){
+      # Add the mean_DNA as a new row in the "counts" assay
+      sce <- SingleCellExperiment(
+        assays = list(counts = rbind(sce@assays@data$counts,mean_DNA)),    # Assay data
+        rowData = DataFrame(measured_channels = c(rowData(sce)$measured_channels,"mean_DNA")),# Metadata for rows
+        colData = colData(sce)# Metadata for columns
+      )
+      
+      return(sce)
+    } else {
+    data$mean_DNA <- mean_DNA
+    
+    return(data)
+  }
 }
+
+
 
 #' Calculated mean of normalised highest BC per cell
 #'
-#' @param ... Channels to average in linear scale. Asinh transformation is applied within the function.
+#' @param sce SingleCellExperiment object with counts in linear scale 
+#' @param dna_channels Vector specifying the names of the DNA channels
 #' @param q Quantile for normalisation.
 #' @param n_bc number of barcoding isotopes per cell.
 #' @return A vector.
@@ -38,20 +63,45 @@ calc_mean_DNA <- function(..., q) {
 #' 
 #' @export
 #'
-calc_mean_BC <- function(..., n_bc, q) {
-  asinh_input <- asinh(rbind(...))
 
+calc_mean_BC <- function(data,bc_channels, n_bc, q) {
+  
+  # Check if the input is a SingleCellExperiment
+  if (inherits(data, "SingleCellExperiment")){
+    sce <- data
+    bc_data <- assay(sce)[bc_channels, , drop = FALSE]
+  } else {
+    # Handle input as a data frame or matrix
+    bc_data <- t(data[,bc_channels])
+    
+  }
+  # Perform calculations
+  asinh_input <- asinh(bc_data)
   quantiles <- apply(asinh_input, 1, quantile, probs = q, names = FALSE)
   scaling_factors <- quantiles[[1]] / quantiles
-
   scaled_data <- asinh_input * scaling_factors
-
-  scaled_data |>
+  mean_BC <- scaled_data |>
     apply(2, sort.int, decreasing = TRUE, method = "shell") |>
     #Rfast::colSort(descending = TRUE) |>
     head(n_bc) |>
     colMeans() |>
     sinh()
+  
+  # Add the mean_BC to the appropriate structure
+  if(inherits(data, "SingleCellExperiment")){
+    # Add the mean_BC as a new row in the "counts" assay
+    sce <- SingleCellExperiment(
+      assays = list(counts = rbind(sce@assays@data$counts,mean_BC)),    # Assay data
+      rowData = DataFrame(measured_channels = c(rowData(sce)$measured_channels,"mean_BC")),# Metadata for rows
+      colData = colData(sce)# Metadata for columns
+    )
+    
+    return(sce)
+  } else {
+    data$mean_BC <- mean_BC
+
+    return(data)
+  }
 }
 
 #' Plot pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova).
