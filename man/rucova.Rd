@@ -5,18 +5,20 @@
 \title{Remove unwanted covariance}
 \usage{
 rucova(
-  data,
+  sce,
   markers,
   SUCs,
+  name_reduced_dim = "PCA",
   apply_asinh_SUCs,
   model = "interaction",
   col_name_sample = "line",
   center_SUCs = "across_samples",
-  keep_offset = TRUE
+  keep_offset = TRUE,
+  name_output = "rucova"
 )
 }
 \arguments{
-\item{data}{A tibble with markers and SUCs in linear scale. Asinh transformation is applied within the function.}
+\item{sce}{A SingleCellExperiment object with markers and SUCs in linear scale. Asinh transformation is applied within the function.}
 
 \item{markers}{Vector of marker names to normalise, y (in linear scale).}
 
@@ -30,7 +32,11 @@ rucova(
 
 \item{center_SUCs}{A character "across_samples" or "per_sample" defining how to center the SUCs in zero.}
 
-\item{keep_offset}{Keep (TRUE) or not (FALSE) the offset intercept between samples.}
+\item{keep_offset}{Keep (TRUE) or not (FALSE) the offset intercept between samples.+}
+
+\item{name_output}{A character specifying the name of the output of rucova containing the model parameters and regression details. This is then saved in the metadata of the SingleCellExperiment object (sce).}
+
+\item{name_rucova_assay}{A character specifying the name of the new assay with regressed counts after RUCova}
 }
 \value{
 Normalised tibble with marker and surrogate values in linear scale (as the input).
