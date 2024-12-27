@@ -6,15 +6,16 @@
 \usage{
 rucova(
   sce,
+  name_assay_before = "counts",
   markers,
-  SUCs,
+  SUCs = c("mean_DNA", "mean_BC", "total_ERK", "pan_Akt"),
   name_reduced_dim = "PCA",
-  apply_asinh_SUCs,
+  apply_asinh_SUCs = TRUE,
   model = "interaction",
   col_name_sample = "line",
   center_SUCs = "across_samples",
   keep_offset = TRUE,
-  name_output = "rucova"
+  name_assay_after = "counts_rucova"
 )
 }
 \arguments{
@@ -35,8 +36,6 @@ rucova(
 \item{keep_offset}{Keep (TRUE) or not (FALSE) the offset intercept between samples.+}
 
 \item{name_output}{A character specifying the name of the output of rucova containing the model parameters and regression details. This is then saved in the metadata of the SingleCellExperiment object (sce).}
-
-\item{name_rucova_assay}{A character specifying the name of the new assay with regressed counts after RUCova}
 }
 \value{
 Normalised tibble with marker and surrogate values in linear scale (as the input).

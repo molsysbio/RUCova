@@ -23,29 +23,28 @@ calc_mean_DNA <- function(data,dna_channels, q) {
     
   }
   # Perform calculations
-    asinh_input <- asinh(dna_data)
-    quantiles <- apply(asinh_input, 1, quantile, probs = q, names = FALSE)
-    scaling_factors <- quantiles[[1]] / quantiles
-    scaled_data <- asinh_input * scaling_factors
-    mean_DNA <- sinh(apply(scaled_data, 2, mean))
+  asinh_input <- asinh(dna_data)
+  quantiles <- apply(asinh_input, 1, quantile, probs = q, names = FALSE)
+  scaling_factors <- quantiles[[1]] / quantiles
+  scaled_data <- asinh_input * scaling_factors
+  mean_DNA <- sinh(apply(scaled_data, 2, mean))
   
   # Add the mean_DNA to the appropriate structure
-    if(inherits(data, "SingleCellExperiment")){
-      # Add the mean_DNA as a new row in the "counts" assay
-      sce <- SingleCellExperiment(
-        assays = list(counts = rbind(sce@assays@data$counts,mean_DNA)),    # Assay data
-        rowData = DataFrame(measured_channels = c(rowData(sce)$measured_channels,"mean_DNA")),# Metadata for rows
-        colData = colData(sce)# Metadata for columns
-      )
-      
-      return(sce)
-    } else {
+  if(inherits(data, "SingleCellExperiment")){
+    # Add the mean_DNA as a new row in the "counts" assay
+    sce <- SingleCellExperiment(
+      assays = list(counts = rbind(sce@assays@data$counts,mean_DNA)),    # Assay data
+      rowData = DataFrame(measured_channels = c(rowData(sce)$measured_channels,"mean_DNA")),# Metadata for rows
+      colData = colData(sce)# Metadata for columns
+    )
+    
+    return(sce)
+  } else {
     data$mean_DNA <- mean_DNA
     
     return(data)
   }
 }
-
 
 
 #' Calculated mean of normalised highest BC per cell
@@ -93,7 +92,7 @@ calc_mean_BC <- function(data,bc_channels, n_bc, q) {
     return(sce)
   } else {
     data$mean_BC <- mean_BC
-
+    
     return(data)
   }
 }
@@ -105,24 +104,91 @@ calc_mean_BC <- function(data,bc_channels, n_bc, q) {
 #' @export
 #'
 #'
-heatmap_compare_corr <- function(lower, upper){
+heatmap_compare_corr <- function(sce, name_assay_before = "counts", name_assay_after = NULL, name_reduced_dim = NULL){
+  
+  #### before: no models pars needed
+  data_before <- t(assay(sce,name_assay_before)) |>  as.tibble()
+  
 
-tmp <-  as.matrix(Matrix::tril(as.matrix(lower)) + Matrix::triu(as.matrix(upper)))
+  ## if it is an initial evaluation with no assay after RUCova:
+  if(is.null(name_assay_after) || name_assay_before == name_assay_after){
+    data_before <- data_before |> mutate_all(asinh)
+    
+    ## add PCA
+    if (!is.null(name_reduced_dim)){
+      data_before <- data_before |> cbind(reducedDim(sce, type = name_reduced_dim))
+    }
+    
+    corr_before <-  data_before |>  cor(method= "pearson")
+    corr_after <-   corr_before
+    
+  } else { #if RUCova was already applied:
+    
+    data_before <- data_before |>  cbind(colData(sce)) 
+    data_after <-  t(assay(sce,name_assay_after)) |>   as.tibble() |> cbind(colData(sce)) 
 
-diag(tmp) <- NA
-hm <- tmp |> 
-  ComplexHeatmap::Heatmap(col = colorRamp2(c(-1, 0, 1), c("blue", "white", "red")),
-                          name = "Pearson corr.coef",
-                          na_col = "grey",
-                          rect_gp = gpar(col = "black", lwd = 0),
-                          cluster_rows = FALSE,
-                          cluster_columns = FALSE,
-                          row_names_side = "left",
-                          column_names_side = "top",
-                          row_title_rot = 0,
-                          row_title_side = "right")
+    ## add PCA
+    if (!is.null(name_reduced_dim)){
+      data_before <- data_before |> cbind(reducedDim(sce, type = name_reduced_dim))
+      data_after <- data_after |> cbind(reducedDim(sce, type = name_reduced_dim))
+    }
+    
+    #transform the data as done for the model:
+    
+    markers <- sce@metadata[[paste0("model_", name_assay_after)]]$markers
+    SUCs <-  sce@metadata[[paste0("model_", name_assay_after)]]$SUCs
+    sample <- sce@metadata[[paste0("model_", name_assay_after)]]$col_name_sample
+    
+    #asinh markers and apply_asinh_SUCs?
+    
+    if(sce@metadata[[paste0("model_", name_assay_after)]]$apply_asinh_SUCs){ 
+      data_before <- data_before |> mutate_at(vars(markers,SUCs), asinh) 
+      data_after <- data_after |> mutate_at(vars(markers,SUCs), asinh)
+    } else {
+      data_before <- data_before |> mutate_at(vars(markers), asinh) 
+      data_after <- data_after |> mutate_at(vars(markers), asinh)
+    }
+    
+    #center_SUCs
 
-draw(hm)
-
+    if(sce@metadata[[paste0("model_", name_assay_after)]]$center_SUCs == "per_sample"){
+      data_before <- data_before |> group_by(!!sym(sample)) |> mutate(across(all_of(SUCs), ~ .x - mean(.x))) |> ungroup()
+      data_after <- data_after |>  group_by(!!sym(sample)) |> mutate(across(all_of(SUCs), ~ .x - mean(.x))) |> ungroup()
+    } else {
+      data_before <- data_before |>  mutate(across(all_of(SUCs), ~ .x - mean(.x)))
+      data_after <- data_after |> mutate(across(all_of(SUCs), ~ .x - mean(.x)))
+    }
+    
+    if(!is.null(name_reduced_dim)){
+      DRs <- colnames(reducedDim(sce, type = name_reduced_dim))
+      corr_before <-  data_before |> select(markers,SUCs, DRs) |>  cor(method= "pearson")
+      corr_after <-   data_after |> select(markers,SUCs, DRs) |> cor(method= "pearson")
+    } else {
+      corr_before <-  data_before |> select(markers,SUCs) |>  cor(method= "pearson")
+      corr_after <-   data_after |> select(markers,SUCs) |> cor(method= "pearson")
+    }
+    
+    
+  } 
+  
+  
+  tmp <-  as.matrix(Matrix::tril(as.matrix(corr_before)) + Matrix::triu(as.matrix(corr_after)))
+  
+  diag(tmp) <- NA
+  hm <- tmp |> 
+    ComplexHeatmap::Heatmap(col = colorRamp2(c(-1, 0, 1), c("blue", "white", "red")),
+                            name = "Pearson corr.coef",
+                            na_col = "grey",
+                            rect_gp = gpar(col = "black", lwd = 0),
+                            cluster_rows = FALSE,
+                            cluster_columns = FALSE,
+                            row_names_side = "left",
+                            column_names_side = "top",
+                            row_title_rot = 0,
+                            row_title_side = "left",
+                            column_title = "after RUCova",
+                            row_title = "before RUCova")
+  
+  draw(hm)
+  
 }
-

@@ -4,7 +4,12 @@
 \alias{heatmap_compare_corr}
 \title{Plot pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova).}
 \usage{
-heatmap_compare_corr(lower, upper)
+heatmap_compare_corr(
+  sce,
+  name_assay_before = "counts",
+  name_assay_after = NULL,
+  name_reduced_dim = NULL
+)
 }
 \arguments{
 \item{lower}{Matrix with pearson correlation coefficient between markers eg.: before RUCova, to be plotted in the lower triangle.}
