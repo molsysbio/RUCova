@@ -309,14 +309,14 @@ Let's say you're not convinced yet by the package, so you want to be conservativ
 ```{r echo=TRUE, include = FALSE}
 
 sce_Cal33 <-  RUCova::rucova(sce = sce_Cal33, 
-                                name_input_assay = "counts",
+                                name_assay_before = "counts",
                                 markers = m,
                                 SUCs = x, 
                                 apply_asinh_SUCs = TRUE, #when taking surrogates we need to asinh-transform them
                                 model = "simple",
                                 center_SUCs = "per_sample",
                                 col_name_sample = "dose",     
-                                name_output_assay = "counts_simple_persample")
+                                name_assay_after = "counts_simple_persample")
 
 ```
 
@@ -363,14 +363,14 @@ As radiation changes the cell volume, we think differences in protein intensitie
 ```{r echo=FALSE}
 
 sce_Cal33 <- RUCova::rucova(sce = sce_Cal33, 
-               name_input_assay = "counts",
+               name_assay_before = "counts",
                markers = m,
                SUCs = x, 
                apply_asinh_SUCs = TRUE, #when taking surrogates we need to asinh-transform them
                model = "simple",
                center_SUCs = "across_samples",
                col_name_sample = "dose",     
-               name_output_assay = "counts_simple_acrosssamples")
+               name_assay_after = "counts_simple_acrosssamples")
 
 
 ```
@@ -466,7 +466,7 @@ Then, `SUCs= "PC1"` and `apply_asinh_SUCs = FALSE`, as asinh transformation is n
 ```{r echo=FALSE}
 
 sce_Cal33 <-  RUCova::rucova(sce = sce_Cal33, 
-                                name_input_assay = "counts",
+                                name_assay_before = "counts",
                                 markers = m,
                                 SUCs = "PC1", 
                                 name_reduced_dim = "PCA",
@@ -474,7 +474,7 @@ sce_Cal33 <-  RUCova::rucova(sce = sce_Cal33,
                                 model = "simple",
                                 center_SUCs = "across_samples",
                                 col_name_sample = "dose",     
-                                name_output_assay = "counts_simple_PC1")
+                                name_assay_after = "counts_simple_PC1")
 
 
 ```
@@ -566,7 +566,7 @@ Here we just show one example: Let's say different samples (dose) within Cal33 a
 ```{r}
 
 sce_Cal33 <- RUCova::rucova(sce = sce_Cal33, 
-               name_input_assay = "counts",
+               name_assay_before = "counts",
                markers = m,
                SUCs = x, 
                apply_asinh_SUCs = TRUE, 
@@ -574,7 +574,7 @@ sce_Cal33 <- RUCova::rucova(sce = sce_Cal33,
                model = "offset",
                center_SUCs = "per_sample",
                col_name_sample = "dose",     
-               name_output_assay = "counts_offset_persample")
+               name_assay_after = "counts_offset_persample")
 ```
 
 Fold-change between conditions ("dose") becomes zero:
@@ -626,14 +626,14 @@ Here we just show one example, the least conservative: we eliminate differences 
 
 
 sce <- RUCova::rucova(sce = sce, 
-               name_input_assay = "counts",
+               name_assay_before = "counts",
                markers = m,
                SUCs = x, 
                apply_asinh_SUCs = TRUE, 
                model = "interaction",
                center_SUCs = "across_samples",
                col_name_sample = "line",     
-               name_output_assay = "counts_interaction_persample")
+               name_assay_after = "counts_interaction_persample")
 
 
 ```
@@ -656,4 +656,3 @@ sce@metadata$model_counts_interaction_persample$eff_coefficients |>
 ```{r}
 sessionInfo()
 ```
-
