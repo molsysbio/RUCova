@@ -275,7 +275,7 @@ Additional assay named `name_assay_after` containing the modified marker intensi
 
 A metadata list named `model_` concatenated with `name_assay_after` accesible via `metadata(sce)`. This list contains:
 
-All the input variables: `name_assay_before`, `markers`, `SUCs`, `name_reduced_dim`, `apply_asinh_SUCs`, `model`, `col_name_sample`, `center_SUCs`, `keep_offset`, `name_assay_after` (to remind you how you obtained this result).
+All the input variables: `name_assay_before`, `markers`, `SUCs`, `name_reduced_dim`, `apply_asinh_SUCs`, `model`, `col_name_sample`, `center_SUCs`, `keep_offset`, `` (to remind you how you obtained this result).
 
 `model_formula`: the `lm` model formula applied to each marker to regress-out surrogates of sources of unwanted covariance.
 
