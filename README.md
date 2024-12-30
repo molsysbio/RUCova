@@ -47,7 +47,7 @@ As Surrogates of Unwanted Covariance (SUCs) we selected the signals of total ERK
 
 #### mean BC
 
-The RUCova function called ```RUCova::calc_mean_BC``` works in two steps. First, it applies the ```asinh()``` function and adjusts the transformed distributions of the barcoding isotopes by matching a specific percentile ```q```. Then, it looks at the signals of each isotope for each cell and picks the top ```n_bc``` signals used for barcoding. The function adds an additional marker (row) with the mean BC signals in linear scale (as it applies the inverse transformation ```sinh()``) in the specified assay. In the following example the Cell-ID 20-Plex Pd Barcoding Kit was used, in addition to Platinum 194 and 198, where 4 out of 8 isotopes are mixed to form one barcode:
+The RUCova function called ```RUCova::calc_mean_BC``` works in two steps. First, it applies the ```asinh()``` function and adjusts the transformed distributions of the barcoding isotopes by matching a specific percentile ```q```. Then, it looks at the signals of each isotope for each cell and picks the top ```n_bc``` signals used for barcoding. The function adds an additional marker (row) with the mean BC signals in linear scale (as it applies the inverse transformation ``sinh()``) in the specified assay. In the following example the Cell-ID 20-Plex Pd Barcoding Kit was used, in addition to Platinum 194 and 198, where 4 out of 8 isotopes are mixed to form one barcode:
 
 ```
  bc_channels <- c("Pd102Di", "Pd104Di", "Pd105Di", "Pd106Di", "Pd108Di", "Pd110Di", 
@@ -114,7 +114,6 @@ The character variables in the vectors ```surrogates```and ```m``` must be finda
 Let's imagine you want to be conservative and only remove correlations between markers and PC1 (of SUCs). Then, ```SUCs= "PC1"``` and  ```apply_asinh_SUCs = FALSE```, as asinh transformation is not necessary on PCs (it was applied on SUCs before PCA). We will choose the interaction model (```model = "interaction"```), as the data set contains different cell lines (samples), and for each one, we want to allow different slopes and intercepts between marker expression and SUCs (or PCs (```col_name_sample = "line"```). Differences in marker expression between cell lines can be artificially influenced by e.g.: different cell volumes leading to an unwanted covariance. To remove these artefactual differences in marker expression we center the surrogates across samples for the linear fit (```center_SUCs = "across_samples"```). In case is desirable to keep the remaining offset between the cell lines, we set ``` keep_offset = TRUE```. 
 
 ```
-
 sce <- RUCova::rucova(sce = sce, 
                name_assay_before = "counts",
                markers = m,
@@ -153,6 +152,7 @@ We recommend calculating the Pearson correlation coefficients between markers an
 ```
 heatmap_compare_corr(sce, name_assay_before = "counts", name_assay_after = "counts_interaction_all", name_reduced_dim = "PCA")
 ```
+
 Here, ```corr_reg_before```and ```corr_reg_all``` should be square matrices containing the Pearson correlation coefficient between markers and surrogates. Row and column names of the matrices should be the corresponding markers and surrogates. Correlation coefficients can be calculated across the entire data set or filtered by each sample if desired.
 
 Using the RUCova function ```heatmap_compare_corr()``` we can generate a square heatmap with the correlation coefficients before RUCova in the lower triangle (first argument) and after RUCova in the upper triangle (second argument) for a direct comparison:
