@@ -7,6 +7,8 @@
 calc_mean_BC(sce, name_assay = "counts", bc_channels, n_bc, q = 0.95)
 }
 \arguments{
+\item{sce}{A SingleCellExperiment object with markers and SUCs in linear scale stored in the assay "name_assay". Asinh transformation is applied within the function.}
+
 \item{name_assay}{A string specifying the name of the assay including the BC channels in linear scale. Default is "counts".}
 
 \item{bc_channels}{Vector specifying the names of the BC channels}
@@ -14,8 +16,6 @@ calc_mean_BC(sce, name_assay = "counts", bc_channels, n_bc, q = 0.95)
 \item{n_bc}{number of barcoding isotopes per cell. n_bc = 3 for the Fluidigm kit.}
 
 \item{q}{Quantile for normalisation. Default is 0.95.}
-
-\item{data}{SingleCellExperiment object with counts in linear scale}
 }
 \value{
 The SingleCellExperiment object with an extra column "mean_BC" in the corresponding assay.

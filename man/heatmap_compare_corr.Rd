@@ -2,7 +2,7 @@
 % Please edit documentation in R/useful_functions.R
 \name{heatmap_compare_corr}
 \alias{heatmap_compare_corr}
-\title{Plot pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova).}
+\title{Plot pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova). If RUCova has not been applied, the output is a symmetric heatmap.}
 \usage{
 heatmap_compare_corr(
   sce,
@@ -12,13 +12,17 @@ heatmap_compare_corr(
 )
 }
 \arguments{
-\item{lower}{Matrix with pearson correlation coefficient between markers eg.: before RUCova, to be plotted in the lower triangle.}
+\item{sce}{A SingleCellExperiment object with markers and SUCs in linear scale stored in the assay "name_assay". Asinh transformation is applied within the function.}
 
-\item{upper}{Matrix with pearson correlation coefficient between markers eg.: after RUCova, to be plotted in the upper triangle.}
+\item{name_assay_before}{A string specifying the name of the assay before RUCova (with original counts in linear scale).}
+
+\item{name_assay_after}{A string specifying the name of the assay before RUCova (with original counts in linear scale).}
+
+\item{name_reduced_dim}{A string specifying the name of the dimensionality reduction data stored under \code{reducedDim()}. If "PCA", then PCs will be included in the heatmao.}
 }
 \value{
-#A heatmap
+#A heatmap with pearson correlation coefficients.
 }
 \description{
-Plot pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova).
+Plot pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova). If RUCova has not been applied, the output is a symmetric heatmap.
 }

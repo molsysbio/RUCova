@@ -50,7 +50,7 @@ calc_mean_DNA <- function(sce, name_assay, dna_channels, q) {
 
 #' Calculated mean of normalised highest BC per cell
 #'
-#' @param data SingleCellExperiment object with counts in linear scale 
+#' @param sce A SingleCellExperiment object with markers and SUCs in linear scale stored in the assay "name_assay". Asinh transformation is applied within the function.
 #' @param name_assay A string specifying the name of the assay including the BC channels in linear scale. Default is "counts".
 #' @param bc_channels Vector specifying the names of the BC channels
 #' @param q Quantile for normalisation. Default is 0.95.
@@ -99,10 +99,12 @@ calc_mean_BC <- function(sce, name_assay = "counts", bc_channels, n_bc, q = 0.95
   }
 }
 
-#' Plot pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova).
-#' @param lower Matrix with pearson correlation coefficient between markers eg.: before RUCova, to be plotted in the lower triangle.
-#' @param upper  Matrix with pearson correlation coefficient between markers eg.: after RUCova, to be plotted in the upper triangle.
-#' @return #A heatmap
+#' Plot pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova). If RUCova has not been applied, the output is a symmetric heatmap.
+#' @param sce A SingleCellExperiment object with markers and SUCs in linear scale stored in the assay "name_assay". Asinh transformation is applied within the function.
+#' @param name_assay_before A string specifying the name of the assay before RUCova (with original counts in linear scale).
+#' @param name_assay_after A string specifying the name of the assay before RUCova (with original counts in linear scale).
+#' @param name_reduced_dim A string specifying the name of the dimensionality reduction data stored under ``reducedDim()``. If "PCA", then PCs will be included in the heatmao. 
+#' @return #A heatmap with pearson correlation coefficients.
 #' @export
 #'
 #'
