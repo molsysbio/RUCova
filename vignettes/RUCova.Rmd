@@ -77,11 +77,11 @@ theme_set(theme_classic())
 
 Let's first go through each input of RUCova.
 
-## data
+## sce
 
-Is a tibble containing mass cytometry data of single-cell marker signals [rows = cells, columns = markers and metadata] in linear scale. This data set should be clean, meaning you excluded beads, debris, doublets, dead cells, and single-cells are demultiplexed (important if you want to adapt the linear fits to the samples).
+Is a ``SingleCellExperiment`` object containing an ``assay`` (e.g.: "counts") with mass cytometry data of single-cell marker signals [rows = markers, columns = cells] in linear scale. This data should be clean, meaning without calibration beads, debris, doublets, and dead cells, and single-cells are demultiplexed (important if you want to adapt the linear fits to the samples). Metadata of the cells (eg.: samples, treatment, etc) are stored in ``colData``.
 
-In this example we offer a mass cytometry data set consisting of 8 Head-and-Neck Squamous Cell Carcinoma (HNSCC) lines in irradiated (10 Gy) and control (0 Gy) conditions. It corresponds to the data in Figure 2 and Figure 3 of the manuscript, but subsampled to 500 cells per line and condition.
+In this example we offer a mass cytometry data set in form of a tibble consisting of 8 Head-and-Neck Squamous Cell Carcinoma (HNSCC) lines in irradiated (10 Gy) and control (0 Gy) conditions. It corresponds to the data in Figure 2 and Figure 3 of the manuscript, but subsampled to 500 cells per line and condition.
 
 ```{r}
 data <- RUCova::HNSCC_data
@@ -91,7 +91,7 @@ rownames(data) <- 1:dim(data)[1]
 data <- data |> mutate(cell_id = 1:n())
 ```
 
-First, we convert our data into a ```SingleCellExperiment``` to ensure interoperability across Bioconductor packages. We also add an id per cell to be able to do a cell-wise signals value modification.
+We convert our data into a ```SingleCellExperiment``` to ensure interoperability across Bioconductor packages. We also add an id per cell to be able to do a cell-wise signals value modification.
 
 
 ```{r}
@@ -105,6 +105,9 @@ sce <- SingleCellExperiment(
 
 ```
 
+## name_assay_before
+
+A string specifying the name of the assay containing the data before applying RUCova. In this example, ```name_assay_before = "counts"```.
 
 ## markers
 
@@ -179,6 +182,16 @@ pca <- t(assay(sce,"counts")) |>
 
 ```
 
+This PCA can be stored in the SingleCellExperiment object as follows:
+
+```{r}
+reducedDim(sce, "PCA") <- pca$x
+```
+
+## name_reduced_dim
+
+Name of the dimensionality reduction data stored under ``reducedDim()``. In this example is `"PCA`. This is important if the regression is desired to be fitted as a function of principal components or other reduced dimensions.
+
 ## apply_asinh_SUCs 
 
 Apply (`TRUE`) or not (`FALSE`) asinh transformation to the SUCs. `TRUE` if SUCs are the measured surrogates ($x$), `FALSE` if SUCs are PCs.
@@ -246,8 +259,9 @@ $$ y^{*m}_i(j_i) = O_1^m(j_i) + \epsilon^m_i $$
 , where $\epsilon^m_i$ are the residuals of the model.
 If the offset between samples is an unwanted covariance (e.g.: batches), then `keep_offset = FALSE`, and the modified value of the marker is:
 $$ y^{*m}_i(j_i) = \epsilon^m_i $$
+## name_assay_after
 
-
+A string specifying the name of the assay containing the data after applying RUCova. 
 
 # Zero values
 
@@ -255,11 +269,13 @@ RUCova fits the chosen linear model including the zero values. By removing the c
 
 # Output data
 
-The output of the function `rucova` is a list containing:
+The output of the function `rucova` is a SingleCellExperiment containing the same information as the input SingleCellExperiment, plus:
 
-`data_reg`: data set with modified marker intensity values in linear scale.
+Additional assay named `name_assay_after` containing the modified marker intensity values in linear scale.
 
-All the input variables: `data`, `markers`, `SUCs`, `apply_asinh_SUCs`, `model`, `col_name_sample`, `center_SUCs`, `keep_offset` (to remind you how you obtained this result).
+A metadata list named `model_` concatenated with `name_assay_after` accesible via `metadata(sce)`. This list contains:
+
+All the input variables: `name_assay_before`, `markers`, `SUCs`, `name_reduced_dim`, `apply_asinh_SUCs`, `model`, `col_name_sample`, `center_SUCs`, `keep_offset`, `name_assay_after` (to remind you how you obtained this result).
 
 `model_formula`: the `lm` model formula applied to each marker to regress-out surrogates of sources of unwanted covariance.
 
