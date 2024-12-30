@@ -4,21 +4,20 @@
 \alias{calc_mean_DNA}
 \title{Calculated mean of normalised Iridium isotopes}
 \usage{
-calc_mean_DNA(..., q)
+calc_mean_DNA(sce, name_assay, dna_channels, q)
 }
 \arguments{
-\item{...}{Channels to average in linear scale. Asinh transformation is applied within the function.}
+\item{sce}{A SingleCellExperiment object with markers and SUCs in linear scale stored in the assay "name_assay". Asinh transformation is applied within the function.}
+
+\item{name_assay}{A string specifying the name of the assay including the DNA channels in linear scale.}
+
+\item{dna_channels}{Vector specifying the names of the DNA channels}
 
 \item{q}{Quantile for normalisation.}
 }
 \value{
-A vector.
+The SingleCellExperiment object with an extra column "mean_BC" in the corresponding assay.
 }
 \description{
 Calculated mean of normalised Iridium isotopes
-}
-\examples{
-data <- RUCova::HNSCC_data
-data |> dplyr::mutate(mean_DNA = RUCova::calc_mean_DNA(DNA_191Ir, DNA_193Ir, q = 0.95))
-
 }

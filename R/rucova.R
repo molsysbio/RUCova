@@ -8,38 +8,40 @@
 
 #' Remove unwanted covariance
 #'
-#' @param data A tibble with markers and SUCs in linear scale. Asinh transformation is applied within the function.
+#' @param sce A SingleCellExperiment object with markers and SUCs in linear scale stored in the assay "name_assay_before". Asinh transformation is applied within the function.
+#' @param name_assay_before A string specifying the name of the assay before RUCova (with original counts in linear scale).
 #' @param markers Vector of marker names to normalise, y (in linear scale).
 #' @param SUCs Vector of surrogates of unwanted covariance to use for normalisation, x (in linear scale).
+#' @param name_reduced_dim string specifying the name of the dimensionality reduction result in the SingleCellExperiment sce.
 #' @param apply_asinh_SUCs Apply (TRUE) or not (FALSE) asinh transformation to the SUCs. TRUE if SUCs are the measured surrogates, FALSE if SUCs are PCs.
 #' @param model A character: "simple", "offset" or "interaction" defining the model.
 #' @param col_name_sample A character indicating the column name in "data" defining each sample.
 #' @param center_SUCs A character "across_samples" or "per_sample" defining how to center the SUCs in zero.
-#' @param keep_offset Keep (TRUE) or not (FALSE) the offset intercept between samples.
-#' @return Normalised tibble with marker and surrogate values in linear scale (as the input).
-#' @examples 
-#' data <- RUCova::HNSCC_data
-#' data <- data |> dplyr::mutate(cell_id = 1:n(),
-#'                        mean_DNA = RUCova::calc_mean_DNA(DNA_191Ir, DNA_193Ir, q = 0.95),
-#'                        mean_BC = RUCova::calc_mean_BC(Pd102Di, Pd104Di, Pd105Di, Pd106Di, Pd108Di, Pd110Di,
-#'                        Dead_cells_194Pt,Dead_cells_198Pt, n_bc = 4, q = 0.95))
-#' m <- c("pH3","IdU","Cyclin_D1","Cyclin_B1", "Ki.67","pRb","pH2A.X","p.p53","p.p38","pChk2","pCDC25c","cCasp3","cPARP","pAkt","pAkt_T308","pMEK1.2","pERK1.2","pS6","p4e.BP1","pSmad1.8","pSmad2.3","pNFkB","IkBa", "CXCL1","Lamin_B1", "pStat1","pStat3", "YAP","NICD")
-#' out <- RUCova::rucova(data, markers = m, SUCs = c("mean_DNA", "mean_BC", "total_ERK", "pan_Akt"), apply_asinh_SUCs = TRUE, col_name_sample = "line", 
-#' center_SUCs = "across_samples", model = "interaction", keep_offset = TRUE)
-#' data_reg <- out$data_reg
+#' @param keep_offset Keep (TRUE) or not (FALSE) the offset intercept between samples.+
+#' @param name_assay_after A string specifying the name of the assay after RUCova (with regressed counts in linear scale).
+#' @return The input SingleCellExperiment object with an additional assay (name_assay_after) and a list in the metadata containing all the model details. 
 #' @import dplyr
 #' @import fastDummies
 #' @import tidyr
 #' @import stringr
 #' @import tibble
+#' @import SingleCellExperiment
 #' @export
-rucova <- function(data, markers, SUCs, apply_asinh_SUCs, model = "interaction", col_name_sample = "line",
-                               center_SUCs = "across_samples", keep_offset = TRUE) {
+rucova <- function(sce, name_assay_before = "counts",  markers, SUCs = c("mean_DNA", "mean_BC", "total_ERK", "pan_Akt"), name_reduced_dim = "PCA", apply_asinh_SUCs = TRUE, model = "interaction", col_name_sample = "line",
+                               center_SUCs = "across_samples", keep_offset = TRUE, name_assay_after = "counts_rucova") {
 
-  # model = c("simple","offset","interaction"), interaction = slope+offset
-  # keep_offset = TRUE or FALSE
-
-  # Type of model ------------------------------------
+ 
+   if (missing(sce) == TRUE || !inherits(sce, "SingleCellExperiment")){
+     stop("Please provide a SingleCellExperiment class")
+     
+   }
+    data <- t(assay(sce,name_assay_before)) |> cbind(colData(sce)) |> as.data.frame()
+    
+    if (grepl("PC",SUCs)[1]){# if model is based on PCs, add this info to the data
+      data <- data |> cbind(reducedDim(sce, name_reduced_dim))
+      } 
+  
+    # Type of model ------------------------------------
   if (model == "offset" || model == "interaction" || center_SUCs == "per_sample") {
     if (missing(col_name_sample) == TRUE){
       stop("Please specify argument `col_name_sample`")
@@ -228,9 +230,14 @@ rucova <- function(data, markers, SUCs, apply_asinh_SUCs, model = "interaction",
         mutate(stand_value = eff_value * sd_x / sd_y)
     }
 
-  # Output ------------------------------------
+    
+      assay(sce, name_assay_after) <- data_reg |> select(rownames(sce)) |> t()
   
-  out_ruc <- list(data_reg, markers, SUCs, apply_asinh_SUCs, model,col_name_sample,center_SUCs, keep_offset, col_name_sample, model_formula, model_coefficients.new,eff_coefficients, model_residuals.new, adjr2.new, stand_slopes)
-  names(out_ruc) <- c("data_reg", "markers", "SUCs", "apply_asinh_SUCs", "model", "col_name_sample", "center_SUCs", "keep_offset", "col_name_sample", "model_formula", "model_coefficients","eff_coefficients", "model_residuals", "adjr2", "stand_slopes")
-  return(out_ruc)
+      out_ruc <- list(name_assay_before,markers, SUCs, name_reduced_dim, apply_asinh_SUCs, model,col_name_sample,center_SUCs, keep_offset, name_assay_after, model_formula, model_coefficients.new, eff_coefficients, model_residuals.new, adjr2.new, stand_slopes)
+      names(out_ruc) <- c("name_assay_before", "markers", "SUCs", "name_reduced_dim","apply_asinh_SUCs", "model", "col_name_sample", "center_SUCs", "keep_offset", "name_assay_after","model_formula", "model_coefficients","eff_coefficients", "model_residuals", "adjr2", "stand_slopes")
+      
+      metadata(sce)[[paste0("model_",name_assay_after)]] <- out_ruc
+      
+  return(sce)
 }
+  

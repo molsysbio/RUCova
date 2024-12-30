@@ -58,7 +58,7 @@ https://doi.org/10.1101/2024.05.24.595717
 Run the following in R:
 
 ```{r, eval = FALSE, message = FALSE}
-remotes::install_github("molsysbio/RUCova@vignette-update", force = TRUE)
+remotes::install_github("molsysbio/RUCova@devel", force = TRUE)
 ```
 
 
@@ -69,6 +69,7 @@ library(ggplot2)
 library(tidyr)
 library(tibble)
 library(dplyr)
+library(SingleCellExperiment)
 theme_set(theme_classic())
 ```
 
@@ -76,24 +77,37 @@ theme_set(theme_classic())
 
 Let's first go through each input of RUCova.
 
-## data
+## sce
 
-Is a tibble containing mass cytometry data of single-cell marker signals [rows = cells, columns = markers and metadata] in linear scale. This data set should be clean, meaning you excluded beads, debris, doublets, dead cells, and single-cells are demultiplexed (important if you want to adapt the linear fits to the samples).
+Is a ``SingleCellExperiment`` object containing an ``assay`` (e.g.: "counts") with mass cytometry data of single-cell marker signals [rows = markers, columns = cells] in linear scale. This data should be clean, meaning without calibration beads, debris, doublets, and dead cells, and single-cells are demultiplexed (important if you want to adapt the linear fits to the samples). Metadata of the cells (eg.: samples, treatment, etc) are stored in ``colData``.
 
-In this example we offer a mass cytometry data set consisting of 8 Head-and-Neck Squamous Cell Carcinoma (HNSCC) lines in irradiated (10 Gy) and control (0 Gy) conditions. It corresponds to the data in Figure 2 and Figure 3 of the manuscript, but subsampled to 500 cells per line and condition.
+In this example we offer a mass cytometry data set in form of a tibble consisting of 8 Head-and-Neck Squamous Cell Carcinoma (HNSCC) lines in irradiated (10 Gy) and control (0 Gy) conditions. It corresponds to the data in Figure 2 and Figure 3 of the manuscript, but subsampled to 500 cells per line and condition.
 
 ```{r}
 data <- RUCova::HNSCC_data
 colnames(data) <- make.names(colnames(data)) 
 head(data)
+rownames(data) <- 1:dim(data)[1]
+data <- data |> mutate(cell_id = 1:n())
 ```
 
-First, we add an id per cell to be able to do a cell-wise signals value modification.
+We convert our data into a ```SingleCellExperiment``` to ensure interoperability across Bioconductor packages. We also add an id per cell to be able to do a cell-wise signals value modification.
+
 
 ```{r}
-data <- data |> 
-  mutate(cell_id = 1:n())
+sce <- SingleCellExperiment(
+  assays = list(counts = t(data[,4:48])),    # Assay data
+  rowData = DataFrame(measured_channels = colnames(data[,4:48])),# Metadata for rows
+  colData = DataFrame(cell_id = data$cell_id,
+                      line = data$line,
+                      dose = data$dose), # Metadata for columns
+)
+
 ```
+
+## name_assay_before
+
+A string specifying the name of the assay containing the data before applying RUCova. In this example, ```name_assay_before = "counts"```.
 
 ## markers
 
@@ -118,9 +132,11 @@ $\rm{mean~DNA}_i = \frac{Ir191_{norm,i} + Ir193_{norm,i}}{2}$, where $\rm Ir191_
 The RUCova function called `RUCova::calc_mean_DNA` applies the `asinh()` function and adjusts the transformed distributions of the iridium isotopes (Ir191 and Ir193) by matching a specific percentile `q` to take then the mean value of these two signals per cell. The function returns a vector with the mean DNA signals in linear scale, as it applies the inverse transformation `sinh()`.
 
 ```{r}
-data <- data |> 
-  mutate(mean_DNA = RUCova::calc_mean_DNA(DNA_191Ir, DNA_193Ir, 
-                                          q = 0.95))
+# Identify the relevant measured channels (DNA_191Ir and DNA_193Ir)
+dna_channels <- c("DNA_191Ir", "DNA_193Ir")
+# Calculate and add the `mean_DNA` column to the colData of the SingleCellExperiment
+sce <- RUCova::calc_mean_DNA(sce, name_assay = "counts", dna_channels, q = 0.95)
+
 ```
 
 ### Mean BC: Mean value of the highest (used) barcoding isotopes per cell:
@@ -132,11 +148,12 @@ The RUCova function called `RUCova::calc_mean_BC` works in two steps. First, it 
 In the following example the Cell-ID 20-Plex Pd Barcoding Kit was used, in addition to Platinum 194 and 198, where 4 out of 8 isotopes are mixed to form one barcode:
 
 ```{r}
-data <- data |> 
-  mutate(mean_BC = RUCova::calc_mean_BC(Pd102Di, Pd104Di, Pd105Di, Pd106Di, Pd108Di, Pd110Di,
-                                        Dead_cells_194Pt,Dead_cells_198Pt, 
-                                        n_bc = 4, 
-                                        q = 0.95))
+
+# Identify the barcoding channels
+bc_channels <- c("Pd102Di", "Pd104Di", "Pd105Di", "Pd106Di", "Pd108Di", "Pd110Di", 
+                 "Dead_cells_194Pt", "Dead_cells_198Pt")
+# Calculate and add the `mean_BC` column to the colData of the SingleCellExperiment
+sce <- RUCova::calc_mean_BC(sce, name_assay = "counts", bc_channels, n_bc = 4, q = 0.95)
 ```
 
 ### pan Akt and total ERK
@@ -156,13 +173,24 @@ x = c("total_ERK", "pan_Akt", "mean_DNA", "mean_BC")
 SUCs can also be linearly transformed into a new coordinate system by applying Principal Component Analysis. By doing this, users can decide the extent of unwanted correlation to be removed by using eg.: only PC1 as a predictive variable in the univariate model, or PC1 to PC2, or all PCs equivalent to taking all surrogates as predictive variables (more examples below).
 
 ```{r}
-pca <- data |> 
+pca <- t(assay(sce,"counts")) |> 
+  as.tibble() |> 
   select(x) |> 
   mutate_all(asinh) |> 
   mutate_all(scale) |> 
   prcomp()
 
 ```
+
+This PCA can be stored in the SingleCellExperiment object as follows:
+
+```{r}
+reducedDim(sce, "PCA") <- pca$x
+```
+
+## name_reduced_dim
+
+Name of the dimensionality reduction data stored under ``reducedDim()``. In this example is `"PCA`. This is important if the regression is desired to be fitted as a function of principal components or other reduced dimensions.
 
 ## apply_asinh_SUCs 
 
@@ -231,8 +259,9 @@ $$ y^{*m}_i(j_i) = O_1^m(j_i) + \epsilon^m_i $$
 , where $\epsilon^m_i$ are the residuals of the model.
 If the offset between samples is an unwanted covariance (e.g.: batches), then `keep_offset = FALSE`, and the modified value of the marker is:
 $$ y^{*m}_i(j_i) = \epsilon^m_i $$
+## name_assay_after
 
-
+A string specifying the name of the assay containing the data after applying RUCova. 
 
 # Zero values
 
@@ -240,11 +269,13 @@ RUCova fits the chosen linear model including the zero values. By removing the c
 
 # Output data
 
-The output of the function `rucova` is a list containing:
+The output of the function `rucova` is a SingleCellExperiment containing the same information as the input SingleCellExperiment, plus:
 
-`data_reg`: data set with modified marker intensity values in linear scale.
+Additional assay named `name_assay_after` containing the modified marker intensity values in linear scale.
 
-All the input variables: `data`, `markers`, `SUCs`, `apply_asinh_SUCs`, `model`, `col_name_sample`, `center_SUCs`, `keep_offset` (to remind you how you obtained this result).
+A metadata list named `model_` concatenated with `name_assay_after` accesible via `metadata(sce)`. This list contains:
+
+All the input variables: `name_assay_before`, `markers`, `SUCs`, `name_reduced_dim`, `apply_asinh_SUCs`, `model`, `col_name_sample`, `center_SUCs`, `keep_offset`, `` (to remind you how you obtained this result).
 
 `model_formula`: the `lm` model formula applied to each marker to regress-out surrogates of sources of unwanted covariance.
 
@@ -269,18 +300,14 @@ $$\alpha^{m*}_{j_i,x_{i,p}} = \alpha^m_{j_i,x_{i,p}}\cdot \frac{\sigma_{x_{j_i,p
 As we have multiple cancer cell lines in the current data set, we run the simple model in only one cell line and across control and treated condition.
 
 ```{r}
-data_Cal33 <-  data |> filter(line == "Cal33")
+sce_Cal33 <-  sce[,sce$line == "Cal33"]
 ```
 
 Let's give a look at the pearson correlation coefficients between markers before applying RUCova (symmetric matrix):
 
 ```{r, fig.height=10, fig.width=10}
-corr_cal33 <- data_Cal33 |>
-  mutate_at(vars(m,x), asinh) |> 
-  select(m,x) |> 
-  cor(method= "pearson")
 
-RUCova:: heatmap_compare_corr(corr_cal33,corr_cal33) #same in lower and upper triangle
+RUCova:: heatmap_compare_corr(sce_Cal33[c(m,x)]) #same in lower and upper triangle
 ```
 
 ### Remove correlations {.tabset}
@@ -291,60 +318,50 @@ RUCova:: heatmap_compare_corr(corr_cal33,corr_cal33) #same in lower and upper tr
 
 Let's say you're not convinced yet by the package, so you want to be conservative and remove correlations to all SUCs but not the logFC between conditions. In this case, `center_SUCs = "per_sample"`.
 
-```{r echo=FALSE}
+```{r echo=TRUE, include = FALSE}
 
-simple_all_x_persample <-  RUCova::rucova(data = data_Cal33, # marker intensity values in linear scale
+sce_Cal33 <-  RUCova::rucova(sce = sce_Cal33, 
+                                name_assay_before = "counts",
                                 markers = m,
                                 SUCs = x, 
                                 apply_asinh_SUCs = TRUE, #when taking surrogates we need to asinh-transform them
                                 model = "simple",
                                 center_SUCs = "per_sample",
-                                col_name_sample = "dose")
+                                col_name_sample = "dose",     
+                                name_assay_after = "counts_simple_persample")
 
-data_reg_simple_all_persample <- simple_all_x_persample$data_reg #output of marker intensity values are also in linear scale, linear in -> linear out
 ```
 
-Lower triangle: before RUCova, upper triangle: after RUCova
+Now we can compare the new Pearson correlation coefficients calculated from the assay ``counts_simple_persample`` (after RUCova, upper triangle) to the original coefficients from the assay ``counts``` (lower triangle).
 
 ```{r, fig.height=10, fig.width=10}
 
-heatmap_compare_corr(lower = data_Cal33 |>
-                                mutate_at(vars(m,x), asinh) |> 
-                                group_by(dose) |>
-                                mutate(across(all_of(x), ~ .x - mean(.x))) |>
-                                ungroup() |> 
-                                select(m,x) |> 
-                                cor(method= "pearson") ,
-                     
-                     upper = data_reg_simple_all_persample |>
-                                mutate_at(vars(m,x), asinh) |> 
-                                group_by(dose) |>
-                                mutate(across(all_of(x), ~ .x - mean(.x))) |>
-                                ungroup() |> 
-                                select(m,x) |> 
-                                cor(method= "pearson")) # lower triangle is before RUCova, upper is after RUCova
+heatmap_compare_corr(sce_Cal33, name_assay_before = "counts", name_assay_after = "counts_simple_persample")
 ```
 
 Log fold-changes between irradiated and control condition are kept (positive means higher in irradiated).
 
 ```{r, fig.height=10, fig.width=10}
-data_Cal33 |> 
+
+FC_before <-  t(assay(sce_Cal33,"counts")) |>  
+  as.tibble() |> 
+  cbind(sce_Cal33@colData) |> 
   mutate_at(vars(x,m), asinh) |> 
   pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
   group_by(marker) |> 
   summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
-  mutate(data = "before RUCova") |> 
-  rbind(
-    
-    data_reg_simple_all_persample |> 
+  mutate(data = "before RUCova") 
+
+FC_after <- t(assay(sce_Cal33,"counts_simple_persample")) |>  
+  as.tibble() |> cbind(sce_Cal33@colData)  |> 
     mutate_at(vars(x,m), asinh) |> 
     pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
     group_by(marker) |> 
     summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
+    ungroup() |> 
     mutate(data = "simple all, per sample")
-    
-    
-  ) |> 
+
+rbind(FC_before,FC_after) |> 
   ggplot(aes(x = logFC, y = marker, fill = data)) + 
   geom_col(position = "dodge")
 
@@ -357,51 +374,48 @@ As radiation changes the cell volume, we think differences in protein intensitie
 
 ```{r echo=FALSE}
 
-simple_all_x_across <-  RUCova::rucova(data = data_Cal33, # marker intensity values in linear scale
-                                markers = m,
-                                SUCs = x, 
-                                apply_asinh_SUCs = TRUE, #when taking surrogates we need to asinh-transform them
-                                model = "simple",
-                                center_SUCs = "across_samples")
+sce_Cal33 <- RUCova::rucova(sce = sce_Cal33, 
+               name_assay_before = "counts",
+               markers = m,
+               SUCs = x, 
+               apply_asinh_SUCs = TRUE, #when taking surrogates we need to asinh-transform them
+               model = "simple",
+               center_SUCs = "across_samples",
+               col_name_sample = "dose",     
+               name_assay_after = "counts_simple_acrosssamples")
 
-data_reg_simple_all_across <- simple_all_x_across$data_reg #output of marker intensity values are also in linear scale, linear in -> linear out
+
 ```
 
-Lower triangle: before RUCova, upper triangle: after RUCova
 
 ```{r, fig.height=10, fig.width=10}
 
-heatmap_compare_corr(lower = data_Cal33 |>
-                                mutate_at(vars(m,x), asinh) |> 
-                                select(m,x) |> 
-                                cor(method= "pearson") ,
-                     
-                     upper = data_reg_simple_all_across |>
-                                mutate_at(vars(m,x), asinh) |> 
-                                select(m,x) |> 
-                                cor(method= "pearson")) # lower triangle is before RUCova, upper is after RUCova
+heatmap_compare_corr(sce_Cal33, name_assay_before = "counts", name_assay_after = "counts_simple_acrosssamples")
+
 ```
 
 Log fold-changes between irradiated and control condition are modified accordingly (positive means higher in irradiated).
 
 ```{r, fig.height=10, fig.width=10}
-data_Cal33 |> 
+FC_before <-  t(assay(sce_Cal33,"counts")) |>  
+  as.tibble() |> 
+  cbind(sce_Cal33@colData) |> 
   mutate_at(vars(x,m), asinh) |> 
   pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
   group_by(marker) |> 
   summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
-  mutate(data = "before RUCova") |> 
-  rbind(
-    
-    data_reg_simple_all_across |> 
+  mutate(data = "before RUCova") 
+
+FC_after <- t(assay(sce_Cal33,"counts_simple_acrosssamples")) |>  
+  as.tibble() |> cbind(sce_Cal33@colData)  |> 
     mutate_at(vars(x,m), asinh) |> 
     pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
     group_by(marker) |> 
     summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
-    mutate(data = "simple all, across samples")
-    
-    
-  ) |> 
+    ungroup() |> 
+    mutate(data = "simple all, per sample")
+
+rbind(FC_before,FC_after) |> 
   ggplot(aes(x = logFC, y = marker, fill = data)) + 
   geom_col(position = "dodge")
 
@@ -413,11 +427,14 @@ Let's imagine you want to be conservative and only remove correlations between m
 
 
 ```{r}
-pca_cal33 <- data_Cal33 |>
+pca_cal33 <- t(assay(sce_Cal33,"counts")) |>
+  as.tibble() |> 
+  cbind(sce_Cal33@colData) |> 
   select(x) |>
   mutate_all(asinh) |>
   mutate_all(scale) |>
   prcomp()
+
 ```
 
 Calculate and plot the variance explained by each PC:
@@ -430,6 +447,7 @@ tibble(perc = as.numeric(pca_cal33$sdev^2/sum(pca_cal33$sdev^2))*100,
   geom_label()
 ```
 
+
 Check the loadings of each PC:
 
 ```{r, fig.width=15, fig.height=5}
@@ -440,70 +458,69 @@ as.data.frame(pca_cal33$rotation) |>
   geom_col() +
   facet_wrap(~PC, nrow = 1)
 ```
-
-Add the PCs to the main data frame:
-
-```{r}
-data_Cal33 <- data_Cal33 |>
-        cbind(as.data.frame(pca_cal33$x))
-```
-
 In this example, PC1 has positive loadings. Meaning PC1 will positively correlate with the markers, which is intuitive if we think of it as the cell size. In case for your data set, PC1 has negative loadings, you can just the direction for a more intuitive analysis:
 
 ```{r, eval = FALSE}
-data_Cal33 |> mutate(PC1 = -PC1) #variable not saved as not necessary here
+pca_cal33$x |> as.data.frame() |> mutate(PC1 = -PC1) #variable not saved as not necessary here
 ```
+
+Add the PCA to the sce object under the name "PCA":
+
+```{r}
+name_reduced_dim = "PCA"
+reducedDim(sce_Cal33, name_reduced_dim) <- pca_cal33$x
+```
+
 
 Then, `SUCs= "PC1"` and `apply_asinh_SUCs = FALSE`, as asinh transformation is not necessary on PCs (it was applied on SUCs before PCA). This applies to all models.
 
 
 ```{r echo=FALSE}
 
-simple_pc1_x <-  RUCova::rucova(data = data_Cal33, # marker intensity values in linear scale
+sce_Cal33 <-  RUCova::rucova(sce = sce_Cal33, 
+                                name_assay_before = "counts",
                                 markers = m,
-                                SUCs = "PC1", # PC1 as predictive variables
+                                SUCs = "PC1", 
+                                name_reduced_dim = "PCA",
                                 apply_asinh_SUCs = FALSE, #when taking surrogates we need to asinh-transform them
                                 model = "simple",
-                                center_SUCs = "across_samples")
+                                center_SUCs = "across_samples",
+                                col_name_sample = "dose",     
+                                name_assay_after = "counts_simple_PC1")
 
-data_reg_simple_pc1 <- simple_pc1_x$data_reg #output of marker intensity values are also in linear scale, linear in -> linear out
+
 ```
 
-Lower triangle: before RUCova, upper triangle: after RUCova
+If we regress-out any PCs and want to check the correlation coefficient, it is important we specify now the name for the heatmap function to include it: ``name_reduced_dim = "PCA"```.
 
 ```{r, fig.height=10, fig.width=10}
 
-heatmap_compare_corr(lower = data_Cal33 |>
-                                mutate_at(vars(m,x), asinh) |> 
-                                select(m,x,"PC1","PC2","PC3","PC4") |> 
-                                cor(method= "pearson") ,
-                     
-                     upper = data_reg_simple_pc1 |>
-                                mutate_at(vars(m,x), asinh) |> 
-                                select(m,x,"PC1","PC2","PC3","PC4") |> 
-                                cor(method= "pearson")) # lower triangle is before RUCova, upper is after RUCova
+heatmap_compare_corr(sce_Cal33, name_assay_before = "counts", name_assay_after = "counts_simple_PC1", name_reduced_dim = "PCA")
+
 ```
 
 Log fold-changes between irradiated and control condition are modified accordingly (positive means higher in irradiated).
 
 ```{r, fig.height=10, fig.width=10}
-data_Cal33 |> 
+FC_before <-  t(assay(sce_Cal33,"counts")) |>  
+  as.tibble() |> 
+  cbind(sce_Cal33@colData) |> 
   mutate_at(vars(x,m), asinh) |> 
   pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
   group_by(marker) |> 
   summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
-  mutate(data = "before RUCova") |> 
-  rbind(
-    
-    data_reg_simple_pc1 |> 
+  mutate(data = "before RUCova") 
+
+FC_after <- t(assay(sce_Cal33,"counts_simple_PC1")) |>  
+  as.tibble() |> cbind(sce_Cal33@colData)  |> 
     mutate_at(vars(x,m), asinh) |> 
     pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
     group_by(marker) |> 
     summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
-    mutate(data = "simple PC1, across samples")
-    
-    
-  ) |> 
+    ungroup() |> 
+    mutate(data = "simple all, per sample")
+
+rbind(FC_before,FC_after) |> 
   ggplot(aes(x = logFC, y = marker, fill = data)) + 
   geom_col(position = "dodge")
 
@@ -514,19 +531,21 @@ data_Cal33 |>
 Let's compare the adjusted $R²$ per marker (goodness of fit, see complete definition above).
 
 ```{r, fig.height=5, fig.width=10}
-simple_all_x_across$adjr2 |> mutate(model = "simple all, across samples") |> 
-  rbind(simple_all_x_persample$adjr2 |> mutate(model = "simple all, per sample")) |> 
-    rbind(simple_pc1_x$adjr2 |> mutate(model = "simple PC1, across sample")) |> 
+
+r2_a <- sce_Cal33@metadata$model_counts_simple_acrosssamples$adjr2 |> mutate(model = "simple all, across samples")
+r2_b <- sce_Cal33@metadata$model_counts_simple_persample$adjr2|> mutate(model = "simple all, per sample")
+r2_c <- sce_Cal33@metadata$model_counts_simple_PC1$adjr2 |> mutate(model = "simple PC1, across sample")
+
+rbind(rbind(r2_a,r2_b),r2_c) |> 
   ggplot(aes(x = adj_r_squared, y = marker, fill = model)) + 
   geom_col(position = "dodge")
 
 ```
+
 In general, across all markers, the adjusted $R^2$ is higher when using all SUCs as predictive variables (instead of just PC1) and when SUCs are center across samples (residuals are smaller). 
 
 ```{r, fig.height=5, fig.width=10}
-simple_all_x_across$adjr2 |> mutate(model = "simple all, across samples") |> 
-  rbind(simple_all_x_persample$adjr2 |> mutate(model = "simple all, per sample")) |> 
-    rbind(simple_pc1_x$adjr2 |> mutate(model = "simple PC1, across sample")) |> 
+rbind(rbind(r2_a,r2_b),r2_c) |> 
   ggplot(aes(y = adj_r_squared, x = model, color = model)) + 
   geom_boxplot()
 
@@ -539,9 +558,11 @@ The decision of which model parameters to use should be based on: (1) the extent
 We can also compare the slopes for each marker in each model.
 
 ```{r, fig.height=5, fig.width=20}
-simple_all_x_across$stand_slopes |> mutate(model = "simple all, across samples") |> 
-  rbind(simple_all_x_persample$stand_slopes |> mutate(model = "simple all, per sample")) |> 
-    rbind(simple_pc1_x$stand_slopes |> mutate(model = "simple PC1, across sample")) |> 
+slope_a <- sce_Cal33@metadata$model_counts_simple_acrosssamples$stand_slopes |> mutate(model = "simple all, across samples") 
+slope_b <- sce_Cal33@metadata$model_counts_simple_persample$stand_slopes |> mutate(model = "simple all, per sample")
+slope_c <- sce_Cal33@metadata$model_counts_simple_PC1$stand_slopes |> mutate(model = "simple PC1, across sample")
+
+rbind(slope_a, slope_b, slope_c) |> 
   mutate(coef_key = factor(coef_key, levels = c("mean_DNA", "mean_BC","pan_Akt", "total_ERK", "PC1"))) |> 
   ggplot(aes(x = stand_value, y = marker, fill = model)) + 
   geom_col(position = "dodge") + 
@@ -552,50 +573,56 @@ simple_all_x_across$stand_slopes |> mutate(model = "simple all, across samples")
 
 ## M2: Offset model 
 
-Here we just show one example: Let's say different samples (dose) within Cal33 are different batches, and we would like to adjust for it in addition to removing unwanted correlations with all SUCs. Then: 
+Here we just show one example: Let's say different samples (dose) within Cal33 are different batches, and we would like to adjust for it in addition to removing unwanted correlations with all SUCs. Then ``keep_offset = FALSE``.
 
 ```{r}
-offset_all_x_persample <-  RUCova::rucova(data = data_Cal33, # marker intensity values in linear scale
-                                markers = m,
-                                SUCs = x, 
-                                apply_asinh_SUCs = TRUE, #when taking surrogates we need to asinh-transform them
-                                model = "offset",
-                                center_SUCs = "per_sample",
-                                col_name_sample = "dose", 
-                                keep_offset = FALSE)
 
-data_reg_offset_all_persample <- offset_all_x_persample$data_reg #output of marker intensity values are also in linear scale, linear in -> linear out
+sce_Cal33 <- RUCova::rucova(sce = sce_Cal33, 
+               name_assay_before = "counts",
+               markers = m,
+               SUCs = x, 
+               apply_asinh_SUCs = TRUE, 
+               keep_offset = FALSE,
+               model = "offset",
+               center_SUCs = "per_sample",
+               col_name_sample = "dose",     
+               name_assay_after = "counts_offset_persample")
 ```
 
 Fold-change between conditions ("dose") becomes zero:
 
-```{r}
-data_Cal33 |> 
+```{r, fig.height=5, fig.width=10}
+
+FC_before < t(assay(sce_Cal33,"counts")) |> 
+                                as.tibble() |>
+                                cbind(sce_Cal33@colData)  |> 
   mutate_at(vars(x,m), asinh) |> 
   pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
   group_by(marker) |> 
   summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
   mutate(data = "before RUCova") |> 
-  rbind(
-    
-    data_reg_offset_all_persample |> 
+  ungroup() 
+  
+FC_after <- t(assay(sce_Cal33,"counts_offset_persample")) |> 
+                                as.tibble() |>
+                                cbind(sce_Cal33@colData)  |> 
     mutate_at(vars(x,m), asinh) |> 
     pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
     group_by(marker) |> 
     summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
-    mutate(data = "offset all, per sample")
+    ungroup() |> 
+    mutate(data = "offset all, per sample") 
     
     
-  ) |> 
+  rbind(FC_before, FC_after) |> 
   ggplot(aes(x = logFC, y = marker, fill = data)) + 
   geom_col(position = "dodge")
 
 ```
 Different intercepts between samples:
 
-
 ```{r, fig.height=5, fig.width=10}
-offset_all_x_persample$eff_coefficients |> 
+sce_Cal33@metadata$model_counts_offset_persample$eff_coefficients |> 
   filter(surrogate == FALSE) |> 
   ggplot(aes(x = eff_value, y = marker, fill = sample)) + 
   geom_col(position = "dodge") +
@@ -608,23 +635,26 @@ offset_all_x_persample$eff_coefficients |>
 Here we just show one example, the least conservative: we eliminate differences between cell lines that correlate with the SUCs (`center_SUCs = "across_samples"`) and apply one fit per cell line (`model = "interaction"`). Then: 
 
 ```{r}
-intercept_all_x_across <-  RUCova::rucova(data = data, # marker intensity values in linear scale
-                                markers = m,
-                                SUCs = x, 
-                                apply_asinh_SUCs = TRUE, #when taking surrogates we need to asinh-transform them
-                                model = "interaction",
-                                center_SUCs = "across_samples",
-                                col_name_sample = "line", 
-                                keep_offset = FALSE)
 
-data_intercept_all_x_across <- intercept_all_x_across$data_reg #output of marker intensity values are also in linear scale, linear in -> linear out
+
+sce <- RUCova::rucova(sce = sce, 
+               name_assay_before = "counts",
+               markers = m,
+               SUCs = x, 
+               apply_asinh_SUCs = TRUE, 
+               model = "interaction",
+               center_SUCs = "across_samples",
+               col_name_sample = "line",     
+               name_assay_after = "counts_interaction_persample")
+
+
 ```
 
 Different slopes for different cell lines:
 
 
 ```{r, fig.height=10, fig.width=10}
-intercept_all_x_across$eff_coefficients |> 
+sce@metadata$model_counts_interaction_persample$eff_coefficients |> 
   filter(surrogate != FALSE) |> 
   ggplot(aes(x = eff_value, y = marker, fill = sample)) + 
   geom_col(position = "dodge") +
@@ -638,4 +668,3 @@ intercept_all_x_across$eff_coefficients |>
 ```{r}
 sessionInfo()
 ```
-

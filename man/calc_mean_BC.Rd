@@ -4,23 +4,22 @@
 \alias{calc_mean_BC}
 \title{Calculated mean of normalised highest BC per cell}
 \usage{
-calc_mean_BC(..., n_bc, q)
+calc_mean_BC(sce, name_assay = "counts", bc_channels, n_bc, q = 0.95)
 }
 \arguments{
-\item{...}{Channels to average in linear scale. Asinh transformation is applied within the function.}
+\item{sce}{A SingleCellExperiment object with markers and SUCs in linear scale stored in the assay "name_assay". Asinh transformation is applied within the function.}
 
-\item{n_bc}{number of barcoding isotopes per cell.}
+\item{name_assay}{A string specifying the name of the assay including the BC channels in linear scale. Default is "counts".}
 
-\item{q}{Quantile for normalisation.}
+\item{bc_channels}{Vector specifying the names of the BC channels}
+
+\item{n_bc}{number of barcoding isotopes per cell. n_bc = 3 for the Fluidigm kit.}
+
+\item{q}{Quantile for normalisation. Default is 0.95.}
 }
 \value{
-A vector.
+The SingleCellExperiment object with an extra column "mean_BC" in the corresponding assay.
 }
 \description{
 Calculated mean of normalised highest BC per cell
-}
-\examples{
-data <- RUCova::HNSCC_data
-data |> dplyr::mutate(mean_BC = RUCova::calc_mean_BC(Pd102Di, Pd104Di, Pd105Di, Pd106Di, Pd108Di, Pd110Di, n_bc = 4, q = 0.95))
-
 }

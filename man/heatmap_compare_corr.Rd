@@ -2,38 +2,27 @@
 % Please edit documentation in R/useful_functions.R
 \name{heatmap_compare_corr}
 \alias{heatmap_compare_corr}
-\title{Plot pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova).}
+\title{Plot pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova). If RUCova has not been applied, the output is a symmetric heatmap.}
 \usage{
-heatmap_compare_corr(lower, upper)
+heatmap_compare_corr(
+  sce,
+  name_assay_before = "counts",
+  name_assay_after = NULL,
+  name_reduced_dim = NULL
+)
 }
 \arguments{
-\item{lower}{Matrix with pearson correlation coefficient between markers eg.: before RUCova, to be plotted in the lower triangle.}
+\item{sce}{A SingleCellExperiment object with markers and SUCs in linear scale stored in the assay "name_assay". Asinh transformation is applied within the function.}
 
-\item{upper}{Matrix with pearson correlation coefficient between markers eg.: after RUCova, to be plotted in the upper triangle.}
+\item{name_assay_before}{A string specifying the name of the assay before RUCova (with original counts in linear scale).}
+
+\item{name_assay_after}{A string specifying the name of the assay before RUCova (with original counts in linear scale).}
+
+\item{name_reduced_dim}{A string specifying the name of the dimensionality reduction data stored under \code{reducedDim()}. If "PCA", then PCs will be included in the heatmao.}
 }
 \value{
-#A heatmap
+#A heatmap with pearson correlation coefficients.
 }
 \description{
-Plot pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova).
-}
-\examples{
-data <- RUCova::HNSCC_data
-data <- data |> dplyr::mutate(cell_id = 1:n(),
-                       mean_DNA = RUCova::calc_mean_DNA(DNA_191Ir, DNA_193Ir, q = 0.95),
-                       mean_BC = RUCova::calc_mean_BC(Pd102Di, Pd104Di, Pd105Di, Pd106Di, Pd108Di, Pd110Di,
-                       Dead_cells_194Pt,Dead_cells_198Pt, n_bc = 4, q = 0.95))
-m <- c("pH3","IdU","Cyclin_D1","Cyclin_B1", "Ki.67","pRb","pH2A.X","p.p53","p.p38","pChk2","pCDC25c","cCasp3","cPARP","pAkt","pAkt_T308","pMEK1.2","pERK1.2","pS6","p4e.BP1","pSmad1.8","pSmad2.3","pNFkB","IkBa", "CXCL1","Lamin_B1", "pStat1","pStat3", "YAP","NICD")
-out <- RUCova::rucova(data, markers = m, SUCs = c("mean_DNA", "mean_BC", "total_ERK", "pan_Akt"), apply_asinh_SUCs = TRUE, col_name_sample = "line", 
-center_SUCs = "across_samples", model = "interaction", keep_offset = TRUE)
-data_reg <- out$data_reg
-lower <-  data |> filter(line == "Cal33") |> 
-dplyr::mutate_at(vars(m,x), asinh) |> 
-dplyr::select(m,x) |> 
-cor(method= "pearson")
-upper <-  data_reg |> filter(line == "Cal33") |> #regressed data set
-dplyr::mutate_at(vars(m,x), asinh) |> 
-dplyr::select(m,x) |> 
-cor(method= "pearson")
-heatmap_compare_corr(lower,upper)
+Plot pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova). If RUCova has not been applied, the output is a symmetric heatmap.
 }
