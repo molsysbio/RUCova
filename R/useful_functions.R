@@ -1,9 +1,10 @@
 #' Calculated mean of normalised Iridium isotopes
 #'
-#' @param data SingleCellExperiment object with counts in linear scale 
+#' @param sce A SingleCellExperiment object with markers and SUCs in linear scale stored in the assay "name_assay". Asinh transformation is applied within the function.
+#' @param name_assay A string specifying the name of the assay including the DNA channels in linear scale.
 #' @param dna_channels Vector specifying the names of the DNA channels
 #' @param q Quantile for normalisation.
-#' @return The SingleCellExperiment object with an extra column "mean_BC" in the counts assay.#'
+#' @return The SingleCellExperiment object with an extra column "mean_BC" in the corresponding assay.
 #' @export
 #' @import dplyr
 #' @import ComplexHeatmap
@@ -11,14 +12,14 @@
 #' @import Matrix
 #' @import grid
 
-calc_mean_DNA <- function(data,dna_channels, q) {
+calc_mean_DNA <- function(sce, name_assay, dna_channels, q) {
   
   # Check if the input is a SingleCellExperiment
-  if (inherits(data, "SingleCellExperiment")){
-    sce <- data
-    dna_data <- assay(sce)[dna_channels, , drop = FALSE]
+  if (inherits(sce, "SingleCellExperiment")){
+    dna_data <- assay(sce,name_assay)[dna_channels, , drop = FALSE]
   } else {
     # Handle input as a data frame or matrix
+    data <- sce
     dna_data <- t(data[,dna_channels])
     
   }
@@ -30,7 +31,7 @@ calc_mean_DNA <- function(data,dna_channels, q) {
   mean_DNA <- sinh(apply(scaled_data, 2, mean))
   
   # Add the mean_DNA to the appropriate structure
-  if(inherits(data, "SingleCellExperiment")){
+  if(inherits(sce, "SingleCellExperiment")){
     # Add the mean_DNA as a new row in the "counts" assay
     sce <- SingleCellExperiment(
       assays = list(counts = rbind(sce@assays@data$counts,mean_DNA)),    # Assay data
@@ -50,21 +51,22 @@ calc_mean_DNA <- function(data,dna_channels, q) {
 #' Calculated mean of normalised highest BC per cell
 #'
 #' @param data SingleCellExperiment object with counts in linear scale 
+#' @param name_assay A string specifying the name of the assay including the BC channels in linear scale. Default is "counts".
 #' @param bc_channels Vector specifying the names of the BC channels
-#' @param q Quantile for normalisation.
-#' @param n_bc number of barcoding isotopes per cell.
-#' @return The SingleCellExperiment object with an extra column "mean_BC" in the counts assay.
+#' @param q Quantile for normalisation. Default is 0.95.
+#' @param n_bc number of barcoding isotopes per cell. n_bc = 3 for the Fluidigm kit.
+#' @return The SingleCellExperiment object with an extra column "mean_BC" in the corresponding assay.
 #' @export
 #'
 
-calc_mean_BC <- function(data,bc_channels, n_bc, q) {
+calc_mean_BC <- function(sce, name_assay = "counts", bc_channels, n_bc, q = 0.95) {
   
   # Check if the input is a SingleCellExperiment
-  if (inherits(data, "SingleCellExperiment")){
-    sce <- data
+  if (inherits(sce, "SingleCellExperiment")){
     bc_data <- assay(sce)[bc_channels, , drop = FALSE]
   } else {
     # Handle input as a data frame or matrix
+    data <- sce
     bc_data <- t(data[,bc_channels])
     
   }
@@ -81,7 +83,7 @@ calc_mean_BC <- function(data,bc_channels, n_bc, q) {
     sinh()
   
   # Add the mean_BC to the appropriate structure
-  if(inherits(data, "SingleCellExperiment")){
+  if(inherits(sce, "SingleCellExperiment")){
     # Add the mean_BC as a new row in the "counts" assay
     sce <- SingleCellExperiment(
       assays = list(counts = rbind(sce@assays@data$counts,mean_BC)),    # Assay data

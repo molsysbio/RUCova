@@ -132,7 +132,7 @@ The RUCova function called `RUCova::calc_mean_DNA` applies the `asinh()` functio
 # Identify the relevant measured channels (DNA_191Ir and DNA_193Ir)
 dna_channels <- c("DNA_191Ir", "DNA_193Ir")
 # Calculate and add the `mean_DNA` column to the colData of the SingleCellExperiment
-sce <- RUCova::calc_mean_DNA(sce, dna_channels, q = 0.95)
+sce <- RUCova::calc_mean_DNA(sce, name_assay = "counts", dna_channels, q = 0.95)
 
 ```
 
@@ -150,7 +150,7 @@ In the following example the Cell-ID 20-Plex Pd Barcoding Kit was used, in addit
 bc_channels <- c("Pd102Di", "Pd104Di", "Pd105Di", "Pd106Di", "Pd108Di", "Pd110Di", 
                  "Dead_cells_194Pt", "Dead_cells_198Pt")
 # Calculate and add the `mean_BC` column to the colData of the SingleCellExperiment
-sce <- RUCova::calc_mean_BC(sce, bc_channels, n_bc = 4, q = 0.95)
+sce <- RUCova::calc_mean_BC(sce, name_assay = "counts", bc_channels, n_bc = 4, q = 0.95)
 ```
 
 ### pan Akt and total ERK

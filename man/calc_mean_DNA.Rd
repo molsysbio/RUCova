@@ -4,17 +4,19 @@
 \alias{calc_mean_DNA}
 \title{Calculated mean of normalised Iridium isotopes}
 \usage{
-calc_mean_DNA(data, dna_channels, q)
+calc_mean_DNA(sce, name_assay, dna_channels, q)
 }
 \arguments{
-\item{data}{SingleCellExperiment object with counts in linear scale}
+\item{sce}{A SingleCellExperiment object with markers and SUCs in linear scale stored in the assay "name_assay". Asinh transformation is applied within the function.}
+
+\item{name_assay}{A string specifying the name of the assay including the DNA channels in linear scale.}
 
 \item{dna_channels}{Vector specifying the names of the DNA channels}
 
 \item{q}{Quantile for normalisation.}
 }
 \value{
-The SingleCellExperiment object with an extra column "mean_BC" in the counts assay.#'
+The SingleCellExperiment object with an extra column "mean_BC" in the corresponding assay.
 }
 \description{
 Calculated mean of normalised Iridium isotopes
