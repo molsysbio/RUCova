@@ -14,7 +14,7 @@ A \code{SingleCellExperiment} object with the following components:
 }
 }
 \usage{
-assay(sce, "counts")
+SummarizedExperiment::assay(sce, "counts")
 }
 \arguments{
 \item{sce}{A \code{SingleCellExperiment} object containing the HNSCC dataset.}
