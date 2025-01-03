@@ -26,6 +26,7 @@
 #' @import stringr
 #' @import tibble
 #' @import SingleCellExperiment
+#' @import magrittr
 #' @export
 rucova <- function(sce, name_assay_before = "counts",  markers, SUCs = c("mean_DNA", "mean_BC", "total_ERK", "pan_Akt"), name_reduced_dim = "PCA", apply_asinh_SUCs = TRUE, model = "interaction", col_name_sample = "line",
                                center_SUCs = "across_samples", keep_offset = TRUE, name_assay_after = "counts_rucova") {
