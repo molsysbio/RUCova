@@ -1,0 +1,19 @@
+# Encoding: UTF-8
+
+citEntry(
+  entry = "Article",
+  title = "RUCova: Removal of Unwanted Covariance in mass cytometry data",
+  author = c(
+    person("Rosario", "Astaburuaga-Garcia"),
+    person("Thomas", "Sell"),
+    person("Samet", "Mutlu"),
+    person("Anja", "Sieber"),
+    person("Kirsten", "Lauber"),
+    person("Nils", "Bluethgen")
+  ),
+  journal = "Bioinformatics",
+  year = "2024",
+  doi = "10.1101/2024.05.24.595717",
+  url = "https://doi.org/10.1101/2024.05.24.595717",
+  textVersion = "Astaburuaga-Garcia R, Sell T, Mutlu S, Sieber A, Lauber K, Bluethgen N. (2024) RUCova: Removal of Unwanted Covariance in mass cytometry data. Bioinformatics. https://doi.org/10.1101/2024.05.24.595717"
+)
