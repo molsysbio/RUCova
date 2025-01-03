@@ -21,3 +21,8 @@ The SingleCellExperiment object with an extra column "mean_BC" in the correspond
 \description{
 Calculated mean of normalised Iridium isotopes
 }
+\examples{
+sce <- RUCova::sce
+dna_channels <- c("DNA_191Ir", "DNA_193Ir")
+sce <- RUCova::calc_mean_DNA(sce, name_assay = "counts", dna_channels, q = 0.95)
+}
