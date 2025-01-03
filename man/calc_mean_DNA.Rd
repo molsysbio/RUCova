@@ -4,7 +4,7 @@
 \alias{calc_mean_DNA}
 \title{Calculated mean of normalised Iridium isotopes}
 \usage{
-calc_mean_DNA(sce, name_assay, dna_channels, q)
+calc_mean_DNA(sce, name_assay = "counts", dna_channels, q)
 }
 \arguments{
 \item{sce}{A SingleCellExperiment object with markers and SUCs in linear scale stored in the assay "name_assay". Asinh transformation is applied within the function.}

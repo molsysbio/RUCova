@@ -12,7 +12,7 @@
 #' @import Matrix
 #' @import grid
 
-calc_mean_DNA <- function(sce, name_assay, dna_channels, q) {
+calc_mean_DNA <- function(sce, name_assay = "counts", dna_channels, q) {
   
   # Check if the input is a SingleCellExperiment
   if (inherits(sce, "SingleCellExperiment")){
