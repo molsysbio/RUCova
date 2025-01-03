@@ -5,6 +5,7 @@
 #' @param dna_channels Vector specifying the names of the DNA channels
 #' @param q Quantile for normalisation.
 #' @return The SingleCellExperiment object with an extra column "mean_BC" in the corresponding assay.
+#' @examples 
 #' @export
 #' @import dplyr
 #' @import ComplexHeatmap
