@@ -5,6 +5,7 @@
 #' @param dna_channels Vector specifying the names of the DNA channels
 #' @param q Quantile for normalisation.
 #' @return The SingleCellExperiment object with an extra column "mean_BC" in the corresponding assay.
+#' @import SingleCellExperiment
 #' @examples 
 #' sce <- RUCova::sce
 #' dna_channels <- c("DNA_191Ir", "DNA_193Ir")
@@ -15,6 +16,8 @@
 #' @import circlize
 #' @import Matrix
 #' @import grid
+#' @import SingleCellExperiment
+
 
 calc_mean_DNA <- function(sce, name_assay = "counts", dna_channels, q) {
   
@@ -60,6 +63,7 @@ calc_mean_DNA <- function(sce, name_assay = "counts", dna_channels, q) {
 #' @param q Quantile for normalisation. Default is 0.95.
 #' @param n_bc number of barcoding isotopes per cell. n_bc = 3 for the Fluidigm kit.
 #' @return The SingleCellExperiment object with an extra column "mean_BC" in the corresponding assay.
+#' @import SingleCellExperiment
 #' @examples 
 #' sce <- RUCova::sce
 #' bc_channels <- c("Pd102Di", "Pd104Di", "Pd105Di", "Pd106Di", "Pd108Di", "Pd110Di", "Dead_cells_194Pt", "Dead_cells_198Pt")
