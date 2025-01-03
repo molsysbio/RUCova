@@ -1,6 +1,6 @@
 Package: RUCova
 Title: Removes unwanted covariance from mass cytometry data 
-Version: 0.99.8
+Version: 0.99.9
 Authors@R: person("Rosario", "Astaburuaga-García", email = "rosario.astaburuaga@charite.de", role = c("aut", "cre"), comment = c(ORCID = "0000-0003-1179-4080"))
 Description: Mass cytometry data is high dimensional and contains unwanted covariance induced by variations in cell size, staining and other technical artefacts. This package uses a set of linear models to model and remove unwanted covariance from this data.   
 License: GPL-3
