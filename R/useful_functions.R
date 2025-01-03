@@ -4,18 +4,15 @@
 #' @param name_assay A string specifying the name of the assay including the DNA channels in linear scale.
 #' @param dna_channels Vector specifying the names of the DNA channels
 #' @param q Quantile for normalisation.
-#' @return The SingleCellExperiment object with an extra column "mean_BC" in the corresponding assay.
 #' @import SingleCellExperiment
+#' @return The SingleCellExperiment object with an extra column "mean_BC" in the corresponding assay.
 #' @examples 
+#' library(SingleCellExperiment)
 #' sce <- RUCova::sce
 #' dna_channels <- c("DNA_191Ir", "DNA_193Ir")
 #' sce <- RUCova::calc_mean_DNA(sce, name_assay = "counts", dna_channels, q = 0.95)
 #' @export
 #' @import dplyr
-#' @import ComplexHeatmap
-#' @import circlize
-#' @import Matrix
-#' @import grid
 #' @import SingleCellExperiment
 
 
@@ -62,9 +59,11 @@ calc_mean_DNA <- function(sce, name_assay = "counts", dna_channels, q) {
 #' @param bc_channels Vector specifying the names of the BC channels
 #' @param q Quantile for normalisation. Default is 0.95.
 #' @param n_bc number of barcoding isotopes per cell. n_bc = 3 for the Fluidigm kit.
-#' @return The SingleCellExperiment object with an extra column "mean_BC" in the corresponding assay.
 #' @import SingleCellExperiment
+#' @import dplyr
+#' @return The SingleCellExperiment object with an extra column "mean_BC" in the corresponding assay.
 #' @examples 
+#' library(SingleCellExperiment)
 #' sce <- RUCova::sce
 #' bc_channels <- c("Pd102Di", "Pd104Di", "Pd105Di", "Pd106Di", "Pd108Di", "Pd110Di", "Dead_cells_194Pt", "Dead_cells_198Pt")
 #' sce <- RUCova::calc_mean_BC(sce, name_assay = "counts", bc_channels, n_bc = 4, q = 0.95)
@@ -116,9 +115,12 @@ calc_mean_BC <- function(sce, name_assay = "counts", bc_channels, n_bc, q = 0.95
 #' @param name_assay_before A string specifying the name of the assay before RUCova (with original counts in linear scale).
 #' @param name_assay_after A string specifying the name of the assay before RUCova (with original counts in linear scale).
 #' @param name_reduced_dim A string specifying the name of the dimensionality reduction data stored under ``reducedDim()``. If "PCA", then PCs will be included in the heatmao. 
+#' @import SingleCellExperiment
+#' @import ComplexHeatmap
 #' @return #A heatmap with pearson correlation coefficients.
 #' @examples
-#' #' sce <- RUCova::sce
+#' library(SingleCellExperiment)
+#' sce <- RUCova::sce
 #' bc_channels <- c("Pd102Di", "Pd104Di", "Pd105Di", "Pd106Di", "Pd108Di", "Pd110Di", "Dead_cells_194Pt", "Dead_cells_198Pt")
 #' sce <- RUCova::calc_mean_BC(sce, name_assay = "counts", bc_channels, n_bc = 4, q = 0.95)
 #' dna_channels <- c("DNA_191Ir", "DNA_193Ir")
