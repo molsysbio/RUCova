@@ -5,6 +5,7 @@
 #' @param dna_channels Vector specifying the names of the DNA channels
 #' @param q Quantile for normalisation.
 #' @import SingleCellExperiment
+#' @import dplyr
 #' @return The SingleCellExperiment object with an extra column "mean_BC" in the corresponding assay.
 #' @examples 
 #' library(SingleCellExperiment)
@@ -12,9 +13,6 @@
 #' dna_channels <- c("DNA_191Ir", "DNA_193Ir")
 #' sce <- RUCova::calc_mean_DNA(sce, name_assay = "counts", dna_channels, q = 0.95)
 #' @export
-#' @import dplyr
-#' @import SingleCellExperiment
-
 
 calc_mean_DNA <- function(sce, name_assay = "counts", dna_channels, q) {
   
