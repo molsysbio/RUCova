@@ -1,11 +1,3 @@
-# RUC function
-#library(dplyr)
-#library(fastDummies)
-#library(tidyr)
-#library(stringr)
-#library(tibble)
-
-
 #' Remove unwanted covariance
 #'
 #' @param sce A SingleCellExperiment object with markers and SUCs in linear scale stored in the assay "name_assay_before". Asinh transformation is applied within the function.
@@ -22,11 +14,11 @@
 #' @return The input SingleCellExperiment object with an additional assay (name_assay_after) and a list in the metadata containing all the model details. 
 #' @import dplyr
 #' @import fastDummies
-#' @import tidyr
+#' @import tidyverse
 #' @import stringr
 #' @import tibble
+#' @import tidyr
 #' @import SingleCellExperiment
-#' @import magrittr
 #' @examples
 #' library(SingleCellExperiment)
 #' sce <- RUCova::sce

@@ -120,6 +120,8 @@ calc_mean_BC <- function(sce, name_assay = "counts", bc_channels, n_bc, q = 0.95
 #' @import grid
 #' @import circlize
 #' @import ComplexHeatmap
+#' @import tidyverse
+#' @import tidyr
 #' @return #A heatmap with pearson correlation coefficients.
 #' @examples
 #' library(SingleCellExperiment)
