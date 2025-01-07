@@ -49,7 +49,7 @@ A data frame with 108649 rows and 59 variables:
 }
 }
 \usage{
-data(HNSCC_data)
+HNSCC_data
 }
 \description{
 Is a tibble containing mass cytometry data of single-cell marker signals (rows = cells, columns = markers and metadata) in linear scale.

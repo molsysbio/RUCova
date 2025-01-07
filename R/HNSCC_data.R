@@ -5,7 +5,6 @@
 #' In this example we offer a mass cytometry data set consisting of 8 Head-and-Neck Squamous Cell Carcinoma (HNSCC) lines in irradiated (10 Gy) and control (0 Gy) conditions (Figure 2 and Figure 3 in the manuscript).
 #'
 #' @docType data
-#' @usage data(HNSCC_data)
 #' @format A data frame with 108649 rows and 59 variables:
 #' #' \describe{
 #'   \item{CXCL1}{Signal for the CXCL1 marker, a cytokine associated with inflammatory responses.}

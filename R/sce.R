@@ -9,14 +9,11 @@
 #'
 #' @docType data
 #' @name sce
-#' @usage SummarizedExperiment::assay(sce, "counts")
 #' @format A `SingleCellExperiment` object with the following components:
 #' \describe{
 #'   \item{assays}{One or more assays, such as \code{"counts"}, containing the marker signals.}
 #'   \item{colData}{Column metadata, including cell annotations such as \code{cell_id}, \code{line}, and \code{dose}.}
 #'   \item{rowData}{Row metadata, including marker annotations.}
 #' }
-#' @param sce A `SingleCellExperiment` object containing the HNSCC dataset.
-#' @param counts The assay name for marker signal data (e.g., "counts").
-#' @aliases sce assay
+#' @aliases sce 
 "sce"

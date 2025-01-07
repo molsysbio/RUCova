@@ -3,7 +3,6 @@
 \docType{data}
 \name{sce}
 \alias{sce}
-\alias{assay}
 \title{SingleCellExperiment Object with HNSCC Data Set}
 \format{
 A \code{SingleCellExperiment} object with the following components:
@@ -14,12 +13,7 @@ A \code{SingleCellExperiment} object with the following components:
 }
 }
 \usage{
-SummarizedExperiment::assay(sce, "counts")
-}
-\arguments{
-\item{sce}{A \code{SingleCellExperiment} object containing the HNSCC dataset.}
-
-\item{counts}{The assay name for marker signal data (e.g., "counts").}
+sce
 }
 \description{
 A \code{SingleCellExperiment} object containing mass cytometry data of single-cell marker signals.
