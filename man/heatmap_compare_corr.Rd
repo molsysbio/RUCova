@@ -42,5 +42,5 @@ x <- c("total_ERK", "pan_Akt", "mean_DNA", "mean_BC")
 sce <- RUCova::rucova(sce = sce, name_assay_before = "counts", markers = m, SUCs = x, 
 apply_asinh_SUCs = TRUE,  model = "interaction", center_SUCs = "across_samples", 
 col_name_sample = "line", name_assay_after = "counts_interaction")
-heatmap_compare_corr(sce, name_assay_before = "counts", name_assay_after = "counts_interaction")
+heatmap_compare_corr(sce[,sce$line == "Cal33"], name_assay_before = "counts", name_assay_after = "counts_interaction")
 }

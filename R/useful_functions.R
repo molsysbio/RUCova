@@ -4,6 +4,7 @@
 #' @param dna_channels Vector specifying the names of the DNA channels
 #' @param q Quantile for normalisation.
 #' @import SingleCellExperiment
+#' @importFrom SummarizedExperiment assay
 #' @import SummarizedExperiment
 #' @import dplyr
 #' @return The SingleCellExperiment object with an extra column "mean_BC" in the corresponding assay.
@@ -57,7 +58,8 @@ calc_mean_DNA <- function(sce, name_assay = "counts", dna_channels, q) {
 #' @param n_bc number of barcoding isotopes per cell. n_bc = 3 for the Fluidigm kit.
 #' @import SingleCellExperiment
 #' @import SummarizedExperiment
-#' @import S4Vectors
+#' @importFrom SummarizedExperiment assay
+#' @importFrom S4Vectors DataFrame
 #' @import dplyr
 #' @return The SingleCellExperiment object with an extra column "mean_BC" in the corresponding assay.
 #' @examples 
@@ -73,7 +75,7 @@ calc_mean_BC <- function(sce, name_assay = "counts", bc_channels, n_bc, q = 0.95
   
   # Check if the input is a SingleCellExperiment
   if (inherits(sce, "SingleCellExperiment")){
-    bc_data <- assay(sce)[bc_channels, , drop = FALSE]
+    bc_data <- assay(sce, name_assay)[bc_channels, , drop = FALSE]
   } else {
     # Handle input as a data frame or matrix
     data <- sce
@@ -121,6 +123,7 @@ calc_mean_BC <- function(sce, name_assay = "counts", bc_channels, n_bc, q = 0.95
 #' @import ComplexHeatmap
 #' @import tidyverse
 #' @import tidyr
+#' @importFrom S4Vectors metadata
 #' @return #A heatmap with pearson correlation coefficients.
 #' @examples
 #' sce <- RUCova::sce
@@ -138,7 +141,7 @@ calc_mean_BC <- function(sce, name_assay = "counts", bc_channels, n_bc, q = 0.95
 #' sce <- RUCova::rucova(sce = sce, name_assay_before = "counts", markers = m, SUCs = x, 
 #' apply_asinh_SUCs = TRUE,  model = "interaction", center_SUCs = "across_samples", 
 #' col_name_sample = "line", name_assay_after = "counts_interaction")
-#' heatmap_compare_corr(sce, name_assay_before = "counts", name_assay_after = "counts_interaction")
+#' heatmap_compare_corr(sce[,sce$line == "Cal33"], name_assay_before = "counts", name_assay_after = "counts_interaction")
 #' @export
 #'
 #'
