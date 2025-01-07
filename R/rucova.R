@@ -1,13 +1,4 @@
-# RUC function
-#library(dplyr)
-#library(fastDummies)
-#library(tidyr)
-#library(stringr)
-#library(tibble)
-
-
 #' Remove unwanted covariance
-#'
 #' @param sce A SingleCellExperiment object with markers and SUCs in linear scale stored in the assay "name_assay_before". Asinh transformation is applied within the function.
 #' @param name_assay_before A string specifying the name of the assay before RUCova (with original counts in linear scale).
 #' @param markers Vector of marker names to normalise, y (in linear scale).
@@ -22,22 +13,28 @@
 #' @return The input SingleCellExperiment object with an additional assay (name_assay_after) and a list in the metadata containing all the model details. 
 #' @import dplyr
 #' @import fastDummies
-#' @import tidyr
+#' @import tidyverse
 #' @import stringr
 #' @import tibble
+#' @import tidyr
 #' @import SingleCellExperiment
-#' @import magrittr
+#' @import SummarizedExperiment
 #' @examples
 #' sce <- RUCova::sce
-#' bc_channels <- c("Pd102Di", "Pd104Di", "Pd105Di", "Pd106Di", "Pd108Di", "Pd110Di", "Dead_cells_194Pt", "Dead_cells_198Pt")
+#' bc_channels <- c("Pd102Di", "Pd104Di", "Pd105Di", "Pd106Di", "Pd108Di", "Pd110Di", 
+#' "Dead_cells_194Pt", "Dead_cells_198Pt")
 #' sce <- RUCova::calc_mean_BC(sce, name_assay = "counts", bc_channels, n_bc = 4, q = 0.95)
 #' dna_channels <- c("DNA_191Ir", "DNA_193Ir")
 #' sce <- RUCova::calc_mean_DNA(sce, name_assay = "counts", dna_channels, q = 0.95)
 #' # Markers:
-#' m <- c("pH3","IdU","Cyclin_D1","Cyclin_B1", "Ki.67","pRb","pH2A.X","p.p53","p.p38","pChk2","pCDC25c","cCasp3","cPARP","pAkt","pAkt_T308","pMEK1.2","pERK1.2","pS6","p4e.BP1","pSmad1.8","pSmad2.3","pNFkB","IkBa", "CXCL1","Lamin_B1", "pStat1","pStat3", "YAP","NICD")
+#' m <- c("pH3","IdU","Cyclin_D1","Cyclin_B1", "Ki.67","pRb","pH2A.X","p.p53","p.p38","pChk2",
+#' "pCDC25c","cCasp3","cPARP","pAkt","pAkt_T308","pMEK1.2","pERK1.2","pS6","p4e.BP1","pSmad1.8",
+#' "pSmad2.3","pNFkB","IkBa", "CXCL1","Lamin_B1", "pStat1","pStat3", "YAP","NICD")
 #' # SUCs::
 #' x <- c("total_ERK", "pan_Akt", "mean_DNA", "mean_BC")
-#' sce <- RUCova::rucova(sce = sce, name_assay_before = "counts", markers = m, SUCs = x, apply_asinh_SUCs = TRUE,  model = "interaction", center_SUCs = "across_samples", col_name_sample = "line", name_assay_after = "counts_interaction")
+#' sce <- RUCova::rucova(sce = sce, name_assay_before = "counts", markers = m, SUCs = x, 
+#' apply_asinh_SUCs = TRUE,  model = "interaction", center_SUCs = "across_samples", 
+#' col_name_sample = "line", name_assay_after = "counts_interaction")
 #' @export
 rucova <- function(sce, name_assay_before = "counts",  markers, SUCs = c("mean_DNA", "mean_BC", "total_ERK", "pan_Akt"), name_reduced_dim = "PCA", apply_asinh_SUCs = TRUE, model = "interaction", col_name_sample = "line",
                                center_SUCs = "across_samples", keep_offset = TRUE, name_assay_after = "counts_rucova") {

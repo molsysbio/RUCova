@@ -25,6 +25,8 @@ Calculated mean of normalised highest BC per cell
 }
 \examples{
 sce <- RUCova::sce
-bc_channels <- c("Pd102Di", "Pd104Di", "Pd105Di", "Pd106Di", "Pd108Di", "Pd110Di", "Dead_cells_194Pt", "Dead_cells_198Pt")
+bc_channels <- c(c("Pd102Di", "Pd104Di", "Pd105Di", "Pd106Di", "Pd108Di", "Pd110Di"),
+  c("Dead_cells_194Pt", "Dead_cells_198Pt")
+)
 sce <- RUCova::calc_mean_BC(sce, name_assay = "counts", bc_channels, n_bc = 4, q = 0.95)
 }

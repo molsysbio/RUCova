@@ -305,7 +305,7 @@ Let's give a look at the pearson correlation coefficients between markers before
 
 ```{r, fig.height=10, fig.width=10}
 
-RUCova:: heatmap_compare_corr(sce_Cal33[c(m,x)]) #same in lower and upper triangle
+RUCova::heatmap_compare_corr(sce_Cal33[c(m,x)]) #same in lower and upper triangle
 ```
 
 ### Remove correlations {.tabset}

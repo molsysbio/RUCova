@@ -1,20 +1,18 @@
 #' Calculated mean of normalised Iridium isotopes
-#'
 #' @param sce A SingleCellExperiment object with markers and SUCs in linear scale stored in the assay "name_assay". Asinh transformation is applied within the function.
 #' @param name_assay A string specifying the name of the assay including the DNA channels in linear scale.
 #' @param dna_channels Vector specifying the names of the DNA channels
 #' @param q Quantile for normalisation.
+#' @import SingleCellExperiment
+#' @importFrom SummarizedExperiment assay
+#' @import SummarizedExperiment
+#' @import dplyr
 #' @return The SingleCellExperiment object with an extra column "mean_BC" in the corresponding assay.
 #' @examples 
 #' sce <- RUCova::sce
 #' dna_channels <- c("DNA_191Ir", "DNA_193Ir")
 #' sce <- RUCova::calc_mean_DNA(sce, name_assay = "counts", dna_channels, q = 0.95)
 #' @export
-#' @import dplyr
-#' @import ComplexHeatmap
-#' @import circlize
-#' @import Matrix
-#' @import grid
 
 calc_mean_DNA <- function(sce, name_assay = "counts", dna_channels, q) {
   
@@ -53,16 +51,22 @@ calc_mean_DNA <- function(sce, name_assay = "counts", dna_channels, q) {
 
 
 #' Calculated mean of normalised highest BC per cell
-#'
 #' @param sce A SingleCellExperiment object with markers and SUCs in linear scale stored in the assay "name_assay". Asinh transformation is applied within the function.
 #' @param name_assay A string specifying the name of the assay including the BC channels in linear scale. Default is "counts".
 #' @param bc_channels Vector specifying the names of the BC channels
 #' @param q Quantile for normalisation. Default is 0.95.
 #' @param n_bc number of barcoding isotopes per cell. n_bc = 3 for the Fluidigm kit.
+#' @import SingleCellExperiment
+#' @import SummarizedExperiment
+#' @importFrom SummarizedExperiment assay
+#' @importFrom S4Vectors DataFrame
+#' @import dplyr
 #' @return The SingleCellExperiment object with an extra column "mean_BC" in the corresponding assay.
 #' @examples 
 #' sce <- RUCova::sce
-#' bc_channels <- c("Pd102Di", "Pd104Di", "Pd105Di", "Pd106Di", "Pd108Di", "Pd110Di", "Dead_cells_194Pt", "Dead_cells_198Pt")
+#' bc_channels <- c(c("Pd102Di", "Pd104Di", "Pd105Di", "Pd106Di", "Pd108Di", "Pd110Di"),
+#'   c("Dead_cells_194Pt", "Dead_cells_198Pt")
+#' )
 #' sce <- RUCova::calc_mean_BC(sce, name_assay = "counts", bc_channels, n_bc = 4, q = 0.95)
 #' @export
 #'
@@ -71,7 +75,7 @@ calc_mean_BC <- function(sce, name_assay = "counts", bc_channels, n_bc, q = 0.95
   
   # Check if the input is a SingleCellExperiment
   if (inherits(sce, "SingleCellExperiment")){
-    bc_data <- assay(sce)[bc_channels, , drop = FALSE]
+    bc_data <- assay(sce, name_assay)[bc_channels, , drop = FALSE]
   } else {
     # Handle input as a data frame or matrix
     data <- sce
@@ -112,19 +116,32 @@ calc_mean_BC <- function(sce, name_assay = "counts", bc_channels, n_bc, q = 0.95
 #' @param name_assay_before A string specifying the name of the assay before RUCova (with original counts in linear scale).
 #' @param name_assay_after A string specifying the name of the assay before RUCova (with original counts in linear scale).
 #' @param name_reduced_dim A string specifying the name of the dimensionality reduction data stored under ``reducedDim()``. If "PCA", then PCs will be included in the heatmao. 
+#' @import SingleCellExperiment
+#' @import SummarizedExperiment
+#' @import grid
+#' @import circlize
+#' @import ComplexHeatmap
+#' @import tidyverse
+#' @import tidyr
+#' @importFrom S4Vectors metadata
 #' @return #A heatmap with pearson correlation coefficients.
 #' @examples
-#' #' sce <- RUCova::sce
-#' bc_channels <- c("Pd102Di", "Pd104Di", "Pd105Di", "Pd106Di", "Pd108Di", "Pd110Di", "Dead_cells_194Pt", "Dead_cells_198Pt")
+#' sce <- RUCova::sce
+#' bc_channels <- c("Pd102Di", "Pd104Di", "Pd105Di", "Pd106Di", "Pd108Di", "Pd110Di",
+#' "Dead_cells_194Pt", "Dead_cells_198Pt")
 #' sce <- RUCova::calc_mean_BC(sce, name_assay = "counts", bc_channels, n_bc = 4, q = 0.95)
 #' dna_channels <- c("DNA_191Ir", "DNA_193Ir")
 #' sce <- RUCova::calc_mean_DNA(sce, name_assay = "counts", dna_channels, q = 0.95)
 #' # Markers:
-#' m <- c("pH3","IdU","Cyclin_D1","Cyclin_B1", "Ki.67","pRb","pH2A.X","p.p53","p.p38","pChk2","pCDC25c","cCasp3","cPARP","pAkt","pAkt_T308","pMEK1.2","pERK1.2","pS6","p4e.BP1","pSmad1.8","pSmad2.3","pNFkB","IkBa", "CXCL1","Lamin_B1", "pStat1","pStat3", "YAP","NICD")
+#' m <- c("pH3","IdU","Cyclin_D1","Cyclin_B1", "Ki.67","pRb","pH2A.X","p.p53","p.p38",
+#' "pChk2","pCDC25c","cCasp3","cPARP","pAkt","pAkt_T308","pMEK1.2","pERK1.2","pS6","p4e.BP1",
+#' "pSmad1.8","pSmad2.3","pNFkB","IkBa", "CXCL1","Lamin_B1", "pStat1","pStat3", "YAP","NICD")
 #' # SUCs::
 #' x <- c("total_ERK", "pan_Akt", "mean_DNA", "mean_BC")
-#' sce <- RUCova::rucova(sce = sce, name_assay_before = "counts", markers = m, SUCs = x, apply_asinh_SUCs = TRUE,  model = "interaction", center_SUCs = "across_samples", col_name_sample = "line", name_assay_after = "counts_interaction")
-#' heatmap_compare_corr(sce, name_assay_before = "counts", name_assay_after = "counts_interaction")
+#' sce <- RUCova::rucova(sce = sce, name_assay_before = "counts", markers = m, SUCs = x, 
+#' apply_asinh_SUCs = TRUE,  model = "interaction", center_SUCs = "across_samples", 
+#' col_name_sample = "line", name_assay_after = "counts_interaction")
+#' heatmap_compare_corr(sce[,sce$line == "Cal33"], name_assay_before = "counts", name_assay_after = "counts_interaction")
 #' @export
 #'
 #'
