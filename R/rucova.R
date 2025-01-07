@@ -1,5 +1,4 @@
 #' Remove unwanted covariance
-#'
 #' @param sce A SingleCellExperiment object with markers and SUCs in linear scale stored in the assay "name_assay_before". Asinh transformation is applied within the function.
 #' @param name_assay_before A string specifying the name of the assay before RUCova (with original counts in linear scale).
 #' @param markers Vector of marker names to normalise, y (in linear scale).
@@ -19,8 +18,8 @@
 #' @import tibble
 #' @import tidyr
 #' @import SingleCellExperiment
+#' @import SummarizedExperiment
 #' @examples
-#' library(SingleCellExperiment)
 #' sce <- RUCova::sce
 #' bc_channels <- c("Pd102Di", "Pd104Di", "Pd105Di", "Pd106Di", "Pd108Di", "Pd110Di", 
 #' "Dead_cells_194Pt", "Dead_cells_198Pt")

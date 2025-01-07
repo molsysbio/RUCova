@@ -48,7 +48,6 @@ The input SingleCellExperiment object with an additional assay (name_assay_after
 Remove unwanted covariance
 }
 \examples{
-library(SingleCellExperiment)
 sce <- RUCova::sce
 bc_channels <- c("Pd102Di", "Pd104Di", "Pd105Di", "Pd106Di", "Pd108Di", "Pd110Di", 
 "Dead_cells_194Pt", "Dead_cells_198Pt")

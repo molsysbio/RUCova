@@ -27,7 +27,6 @@ heatmap_compare_corr(
 Plot pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova). If RUCova has not been applied, the output is a symmetric heatmap.
 }
 \examples{
-library(SingleCellExperiment)
 sce <- RUCova::sce
 bc_channels <- c("Pd102Di", "Pd104Di", "Pd105Di", "Pd106Di", "Pd108Di", "Pd110Di",
 "Dead_cells_194Pt", "Dead_cells_198Pt")

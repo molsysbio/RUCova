@@ -6,7 +6,7 @@ Description: Mass cytometry data is high dimensional and contains unwanted covar
 License: GPL-3
 Encoding: UTF-8
 biocViews: Software, SingleCell
-Roxygen: list(markdown = TRUE)
+Roxygen: list(markdown = TRUE, roclets = c("rd", "namespace", "collate"))
 RoxygenNote: 7.3.2
 Suggests: 
     knitr,
@@ -28,9 +28,11 @@ Imports:
     remotes,
     circlize,
     SingleCellExperiment,
+    SummarizedExperiment,
     tidyverse,
     tidyr,
-    magrittr
+    magrittr,
+    S4Vectors
 VignetteBuilder: knitr
 Depends: 
     R (>= 4.1.0)
