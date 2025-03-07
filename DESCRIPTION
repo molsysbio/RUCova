@@ -11,7 +11,8 @@ RoxygenNote: 7.3.2
 Suggests: 
     knitr,
     rmarkdown,
-    BiocManager
+    BiocManager,
+    BiocStyle
 Imports:
     dplyr,
     fastDummies,
@@ -37,3 +38,6 @@ VignetteBuilder: knitr
 Depends: 
     R (>= 4.1.0)
 LazyData: true
+SystemRequirements: GNU make
+BugReports: https://github.com/molsysbio/RUCova/issues
+URL: https://github.com/molsysbio/RUCova

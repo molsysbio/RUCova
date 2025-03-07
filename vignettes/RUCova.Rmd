@@ -4,7 +4,7 @@ author: "Rosario Astaburuaga-García"
 pdf_document: null
 geometry: "left=1cm,right=1cm,top=1cm,bottom=1cm"
 output: 
-  rmarkdown::html_vignette:
+  BiocStyle::html_document:
     toc: TRUE
     toc_depth: 2
 vignette: >
