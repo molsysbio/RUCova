@@ -111,15 +111,16 @@ rucova <- function(sce, name_assay_before = "counts",  markers, SUCs = c("mean_D
 
   # Model function and coefficients  ------------------------------------
   if (model == "interaction") {
-    slope_dummy <- levels(interaction(SUCs, dummy_sample_var, sep = " : "))
-    n_coeff <- 1 + max(length(dummy_sample_var), 1) + max(length(SUCs), 1) + (max(length(SUCs), 1) * max(length(dummy_sample_var), 1))
+    combinations <- expand.grid(SUCs = SUCs, dummy_sample_var = dummy_sample_var)
+    slope_dummy <- levels(interaction(combinations$SUCs, combinations$dummy_sample_var, sep = " : "))
+    n_coeff <- 1 + length(dummy_sample_var) + length(SUCs) + (length(SUCs) * length(dummy_sample_var))
   } else if (model == "offset") {
     slope_dummy <- NULL
-    n_coeff <- 1 + max(length(dummy_sample_var),1) + max(length(SUCs),1)
+    n_coeff <- 1 + length(dummy_sample_var) + length(SUCs)
   } else {
     dummy_sample_var <- NULL
     slope_dummy <- NULL
-    n_coeff <- 1 + max(length(SUCs),1)
+    n_coeff <- 1 + length(SUCs)
   }
 
   # Regression ------------------------------------
@@ -229,7 +230,7 @@ rucova <- function(sce, name_assay_before = "counts",  markers, SUCs = c("mean_D
     } else { # 1 slope per sample
       sd_values <- dt |>
         group_by(sample) |>
-        summarise_at(vars(markers, SUCs), sd) |>
+        summarise(across(all_of(c(markers, SUCs)), sd)) |>
         ungroup() |>
         pivot_longer(names_to = "marker", values_to = "sd_y", markers) |>
         pivot_longer(names_to = "surrogate", values_to = "sd_x", SUCs)
