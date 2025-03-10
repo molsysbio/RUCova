@@ -188,7 +188,7 @@ SUCs can also be linearly transformed into a new coordinate system by applying P
 ```{r}
 pca <- t(assay(sce,"counts")) |> 
   as.tibble() |> 
-  select(x) |> 
+  select(all_of(x)) |> 
   mutate_all(asinh) |> 
   mutate_all(scale) |> 
   prcomp()

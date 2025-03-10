@@ -112,14 +112,14 @@ rucova <- function(sce, name_assay_before = "counts",  markers, SUCs = c("mean_D
   # Model function and coefficients  ------------------------------------
   if (model == "interaction") {
     slope_dummy <- levels(interaction(SUCs, dummy_sample_var, sep = " : "))
-    n_coeff <- 1 + length(dummy_sample_var) + length(SUCs) + (length(SUCs) * length(dummy_sample_var))
+    n_coeff <- 1 + max(length(dummy_sample_var), 1) + max(length(SUCs), 1) + (max(length(SUCs), 1) * max(length(dummy_sample_var), 1))
   } else if (model == "offset") {
     slope_dummy <- NULL
-    n_coeff <- 1 + length(dummy_sample_var) + length(SUCs)
+    n_coeff <- 1 + max(length(dummy_sample_var),1) + max(length(SUCs),1)
   } else {
     dummy_sample_var <- NULL
     slope_dummy <- NULL
-    n_coeff <- 1 + length(SUCs)
+    n_coeff <- 1 + max(length(SUCs),1)
   }
 
   # Regression ------------------------------------
