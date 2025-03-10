@@ -2,9 +2,7 @@
 % Please edit documentation in R/rucova.R
 \docType{package}
 \name{rucova}
-\alias{-package}
 \alias{rucova}
-\alias{RUCova}
 \title{Remove unwanted covariance}
 \usage{
 rucova(
