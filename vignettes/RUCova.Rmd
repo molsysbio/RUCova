@@ -97,6 +97,7 @@ In this example we offer a mass cytometry data set in form of a tibble consistin
 
 ```{r}
 data <- RUCova::HNSCC_data
+data <- as.data.frame(data)
 colnames(data) <- make.names(colnames(data)) 
 head(data)
 rownames(data) <- 1:dim(data)[1]
@@ -187,7 +188,7 @@ SUCs can also be linearly transformed into a new coordinate system by applying P
 
 ```{r}
 pca <- t(assay(sce,"counts")) |> 
-  as.tibble() |> 
+  as_tibble() |> 
   select(all_of(x)) |> 
   mutate_all(asinh) |> 
   mutate_all(scale) |> 
@@ -606,7 +607,7 @@ Fold-change between conditions ("dose") becomes zero:
 
 ```{r, fig.height=5, fig.width=10}
 
-FC_before < t(assay(sce_Cal33,"counts")) |> 
+FC_before <- t(assay(sce_Cal33,"counts")) |> 
                                 as.tibble() |>
                                 cbind(sce_Cal33@colData)  |> 
   mutate_at(vars(x,m), asinh) |> 

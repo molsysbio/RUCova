@@ -240,9 +240,11 @@ rucova <- function(sce, name_assay_before = "counts",  markers, SUCs = c("mean_D
         left_join(sd_values, by = c("marker", "surrogate", "sample")) |>
         mutate(stand_value = eff_value * sd_x / sd_y)
     }
-
-    
-      assays(sce)[[name_assay_after]] <- data_reg |> select(rownames(sce)) |> t()
+  
+      tmp <- data_reg |> select(rownames(sce)) |> t()
+      colnames(tmp) <- as.character(data_reg$cell_id)
+      
+      assays(sce)[[name_assay_after]] <- tmp
   
       out_ruc <- list(name_assay_before,markers, SUCs, name_reduced_dim, apply_asinh_SUCs, model,col_name_sample,center_SUCs, keep_offset, name_assay_after, model_formula, model_coefficients.new, eff_coefficients, model_residuals.new, adjr2.new, stand_slopes)
       names(out_ruc) <- c("name_assay_before", "markers", "SUCs", "name_reduced_dim","apply_asinh_SUCs", "model", "col_name_sample", "center_SUCs", "keep_offset", "name_assay_after","model_formula", "model_coefficients","eff_coefficients", "model_residuals", "adjr2", "stand_slopes")
