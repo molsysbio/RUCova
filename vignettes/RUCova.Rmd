@@ -52,15 +52,30 @@ RUCova: Removal of Unwanted Covariance in mass cytometry data Rosario Astaburuag
 
 # Installation
 
-Run the following in R:
+
+To install the stable release of RUCova from Bioconductor (recommended), run:
 
 ```{r, eval = FALSE, message = FALSE}
-remotes::install_github("molsysbio/RUCova@devel", force = TRUE)
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("RUCova")
+
+```
+
+
+To install the latest development version directly from GitHub, use:
+
+```{r, eval = TRUE, message = FALSE}
+if (!requireNamespace("devtools", quietly = TRUE))
+    install.packages("devtools")
+
+devtools::install_github("molsysbio/RUCova@devel", force = TRUE)
 ```
 
 
 ```{r, eval = TRUE, message = FALSE}
-library(remotes)
 library(RUCova)
 library(ggplot2)
 library(tidyr)

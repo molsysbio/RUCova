@@ -1,4 +1,7 @@
 #' Remove unwanted covariance
+#' @docType package
+#' @name rucova
+#' @aliases RUCova
 #' @param sce A SingleCellExperiment object with markers and SUCs in linear scale stored in the assay "name_assay_before". Asinh transformation is applied within the function.
 #' @param name_assay_before A string specifying the name of the assay before RUCova (with original counts in linear scale).
 #' @param markers Vector of marker names to normalise, y (in linear scale).
@@ -106,8 +109,6 @@ rucova <- function(sce, name_assay_before = "counts",  markers, SUCs = c("mean_D
       summarise(across(all_of(dummy_sample_var), max))
   }
 
-  #dt <- data |> mutate(cell_id = 1:n())
-  
   # Model function and coefficients  ------------------------------------
   if (model == "interaction") {
     slope_dummy <- levels(interaction(SUCs, dummy_sample_var, sep = " : "))

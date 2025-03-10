@@ -7,12 +7,29 @@ RUCova: Removal of Unwanted Covariance in mass cytometry data
 Rosario Astaburuaga-García, Thomas Sell, Samet Mutlu, Anja Sieber, Kirsten Lauber, Nils Blüthgen.
 Bioinformatics 2024; doi: [https://doi.org/10.1101/2024.05.24.595717](https://doi.org/10.1093/bioinformatics/btae669)
 
-### 1. Install RUCova
+1.  Install RUCova
 
-Run the following in R:
+To install the stable release of RUCova from Bioconductor (recommended), run:
 
 ```
-remotes::install_github("molsysbio/RUCova@devel", force = TRUE)
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("RUCova")
+```
+
+To install the latest development version directly from GitHub, use:
+
+```
+if (!requireNamespace("devtools", quietly = TRUE))
+    install.packages("devtools")
+
+devtools::install_github("molsysbio/RUCova@devel", force = TRUE)
+```
+
+and load the package
+
+```
 library(RUCova)
 ```
 
