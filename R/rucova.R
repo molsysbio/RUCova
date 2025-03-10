@@ -61,11 +61,11 @@ rucova <- function(sce, name_assay_before = "counts",  markers, SUCs = c("mean_D
     }
           if(apply_asinh_SUCs == TRUE) {
             dt <- data |>
-              dplyr::rename(sample = col_name_sample) |>
+              dplyr::rename(sample = all_of(col_name_sample)) |>
               mutate(across(all_of(c(markers, SUCs)), asinh))
           } else {
             dt <- data |>
-              dplyr::rename(sample = col_name_sample) |>
+              dplyr::rename(sample = all_of(col_name_sample)) |>
               mutate(across(all_of(markers), asinh))
           }
 
@@ -241,7 +241,7 @@ rucova <- function(sce, name_assay_before = "counts",  markers, SUCs = c("mean_D
     }
 
     
-      assay(sce, name_assay_after) <- data_reg |> select(rownames(sce)) |> t()
+      assays(sce)[[name_assay_after]] <- data_reg |> select(rownames(sce)) |> t()
   
       out_ruc <- list(name_assay_before,markers, SUCs, name_reduced_dim, apply_asinh_SUCs, model,col_name_sample,center_SUCs, keep_offset, name_assay_after, model_formula, model_coefficients.new, eff_coefficients, model_residuals.new, adjr2.new, stand_slopes)
       names(out_ruc) <- c("name_assay_before", "markers", "SUCs", "name_reduced_dim","apply_asinh_SUCs", "model", "col_name_sample", "center_SUCs", "keep_offset", "name_assay_after","model_formula", "model_coefficients","eff_coefficients", "model_residuals", "adjr2", "stand_slopes")
