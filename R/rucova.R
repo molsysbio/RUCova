@@ -219,8 +219,8 @@ rucova <- function(sce, name_assay_before = "counts",  markers, SUCs = c("mean_D
       sd_values <- dt |>
         summarise(across(all_of(c(markers, SUCs)), sd)) |>
         ungroup() |>
-        pivot_longer(names_to = "marker", values_to = "sd_y", markers) |>
-        pivot_longer(names_to = "surrogate", values_to = "sd_x", SUCs)
+        pivot_longer(names_to = "marker", values_to = "sd_y", all_of(markers)) |>
+        pivot_longer(names_to = "surrogate", values_to = "sd_x", all_of(SUCs))
 
       stand_slopes <- eff_coefficients |>
         filter(surrogate != FALSE) |>
@@ -231,8 +231,8 @@ rucova <- function(sce, name_assay_before = "counts",  markers, SUCs = c("mean_D
         group_by(sample) |>
         summarise(across(all_of(c(markers, SUCs)), sd)) |>
         ungroup() |>
-        pivot_longer(names_to = "marker", values_to = "sd_y", markers) |>
-        pivot_longer(names_to = "surrogate", values_to = "sd_x", SUCs)
+        pivot_longer(names_to = "marker", values_to = "sd_y", all_of(markers)) |>
+        pivot_longer(names_to = "surrogate", values_to = "sd_x", all_of(SUCs))
 
       stand_slopes <- eff_coefficients |>
         filter(surrogate != FALSE) |>
@@ -241,7 +241,6 @@ rucova <- function(sce, name_assay_before = "counts",  markers, SUCs = c("mean_D
     }
   
       tmp <- data_reg |> select(rownames(sce)) |> t()
-      colnames(tmp) <- as.character(data_reg$cell_id)
       
       assays(sce)[[name_assay_after]] <- tmp
   

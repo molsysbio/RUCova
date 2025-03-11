@@ -68,10 +68,7 @@ BiocManager::install("RUCova")
 To install the latest development version directly from GitHub, use:
 
 ```{r, eval = TRUE, message = FALSE}
-if (!requireNamespace("devtools", quietly = TRUE))
-    install.packages("devtools")
-
-devtools::install_github("molsysbio/RUCova@devel", force = TRUE)
+remotes::install_github("molsysbio/RUCova@devel", force = TRUE)
 ```
 
 
@@ -649,8 +646,6 @@ sce_Cal33@metadata$model_counts_offset_persample$eff_coefficients |>
 Here we just show one example, the least conservative: we eliminate differences between cell lines that correlate with the SUCs (`center_SUCs = "across_samples"`) and apply one fit per cell line (`model = "interaction"`). Then: 
 
 ```{r}
-
-
 sce <- RUCova::rucova(sce = sce, 
                name_assay_before = "counts",
                markers = m,
