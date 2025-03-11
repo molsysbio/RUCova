@@ -469,6 +469,7 @@ as.data.frame(pca_cal33$rotation) |>
   geom_col() +
   facet_wrap(~PC, nrow = 1)
 ```
+
 In this example, PC1 has positive loadings. Meaning PC1 will positively correlate with the markers, which is intuitive if we think of it as the cell size. In case for your data set, PC1 has negative loadings, you can just the direction for a more intuitive analysis:
 
 ```{r, eval = FALSE}
@@ -630,6 +631,7 @@ FC_after <- t(assay(sce_Cal33,"counts_offset_persample")) |>
   geom_col(position = "dodge")
 
 ```
+
 Different intercepts between samples:
 
 ```{r, fig.height=5, fig.width=10}
