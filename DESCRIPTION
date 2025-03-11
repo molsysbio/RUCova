@@ -1,8 +1,8 @@
 Package: RUCova
 Title: Removes unwanted covariance from mass cytometry data 
-Version: 0.99.18
+Version: 0.99.19
 Authors@R: person("Rosario", "Astaburuaga-García", email = "rosario.astaburuaga@charite.de", role = c("aut", "cre"), comment = c(ORCID = "0000-0003-1179-4080"))
-Description: Mass cytometry data is high dimensional and contains unwanted covariance induced by variations in cell size, staining and other technical artefacts. This package uses a set of linear models to model and remove unwanted covariance from this data.   
+Description: Mass cytometry enables the simultaneous measurement of dozens of protein markers at the single-cell level, producing high dimensional datasets that provide deep insights into cellular heterogeneity and function. However, these datasets often contain unwanted covariance introduced by technical variations, such as differences in cell size, staining efficiency, and instrument-specific artifacts, which can obscure biological signals and complicate downstream analysis. This package addresses this challenge by implementing a robust framework of linear models designed to identify and remove these sources of unwanted covariance.By systematically modeling and correcting for technical noise, the package enhances the quality and interpretability of mass cytometry data, enabling researchers to focus on biologically relevant signals. 
 License: GPL-3
 Encoding: UTF-8
 biocViews: Software, SingleCell
@@ -35,8 +35,7 @@ Imports:
     S4Vectors
 VignetteBuilder: knitr
 Depends: 
-    R (>= 4.1.0)
-LazyData: true
+    R (>= 4.4.0)
 SystemRequirements: GNU make
 BugReports: https://github.com/molsysbio/RUCova/issues
 URL: https://github.com/molsysbio/RUCova

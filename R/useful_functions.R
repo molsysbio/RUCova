@@ -150,7 +150,7 @@ heatmap_compare_corr <- function(sce, name_assay_before = "counts", name_assay_a
   #### before: no models pars needed
   data_before <- t(assay(sce,name_assay_before)) |>  as_tibble()
   
-
+  
   ## if it is an initial evaluation with no assay after RUCova:
   if(is.null(name_assay_after) || name_assay_before == name_assay_after){
     data_before <- data_before |> mutate_all(asinh)
@@ -167,7 +167,7 @@ heatmap_compare_corr <- function(sce, name_assay_before = "counts", name_assay_a
     
     data_before <- data_before |>  cbind(colData(sce)) 
     data_after <-  t(assay(sce,name_assay_after)) |>   as.tibble() |> cbind(colData(sce)) 
-
+    
     ## add PCA
     if (!is.null(name_reduced_dim)){
       data_before <- data_before |> cbind(reducedDim(sce, type = name_reduced_dim))
@@ -191,7 +191,7 @@ heatmap_compare_corr <- function(sce, name_assay_before = "counts", name_assay_a
     }
     
     #center_SUCs
-
+    
     if(sce@metadata[[paste0("model_", name_assay_after)]]$center_SUCs == "per_sample"){
       data_before <- data_before |> group_by(!!sym(sample)) |> mutate(across(all_of(SUCs), ~ .x - mean(.x))) |> ungroup()
       data_after <- data_after |>  group_by(!!sym(sample)) |> mutate(across(all_of(SUCs), ~ .x - mean(.x))) |> ungroup()

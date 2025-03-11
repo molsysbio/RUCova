@@ -12,13 +12,13 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-
+  
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  warning = FALSE,
-  message = FALSE
+collapse = TRUE,
+comment = "#>",
+warning = FALSE,
+message = FALSE
 )
 ```
 
@@ -58,12 +58,11 @@ To install the stable release of RUCova from Bioconductor (recommended), run:
 ```{r, eval = FALSE, message = FALSE}
 
 if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
+  install.packages("BiocManager")
 
 BiocManager::install("RUCova")
 
 ```
-
 
 To install the latest development version directly from GitHub, use:
 
@@ -332,14 +331,14 @@ Let's say you're not convinced yet by the package, so you want to be conservativ
 ```{r echo=TRUE, include = FALSE}
 
 sce_Cal33 <-  RUCova::rucova(sce = sce_Cal33, 
-                                name_assay_before = "counts",
-                                markers = m,
-                                SUCs = x, 
-                                apply_asinh_SUCs = TRUE, #when taking surrogates we need to asinh-transform them
-                                model = "simple",
-                                center_SUCs = "per_sample",
-                                col_name_sample = "dose",     
-                                name_assay_after = "counts_simple_persample")
+                             name_assay_before = "counts",
+                             markers = m,
+                             SUCs = x, 
+                             apply_asinh_SUCs = TRUE, #when taking surrogates we need to asinh-transform them
+                             model = "simple",
+                             center_SUCs = "per_sample",
+                             col_name_sample = "dose",     
+                             name_assay_after = "counts_simple_persample")
 
 ```
 
@@ -356,7 +355,7 @@ Log fold-changes between irradiated and control condition are kept (positive mea
 
 FC_before <-  t(assay(sce_Cal33,"counts")) |>  
   as.tibble() |> 
-  cbind(sce_Cal33@colData) |> 
+  cbind(colData(sce_Cal33)) |> 
   mutate_at(vars(x,m), asinh) |> 
   pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
   group_by(marker) |> 
@@ -364,13 +363,13 @@ FC_before <-  t(assay(sce_Cal33,"counts")) |>
   mutate(data = "before RUCova") 
 
 FC_after <- t(assay(sce_Cal33,"counts_simple_persample")) |>  
-  as.tibble() |> cbind(sce_Cal33@colData)  |> 
-    mutate_at(vars(x,m), asinh) |> 
-    pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
-    group_by(marker) |> 
-    summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
-    ungroup() |> 
-    mutate(data = "simple all, per sample")
+  as.tibble() |> cbind(colData(sce_Cal33))  |> 
+  mutate_at(vars(x,m), asinh) |> 
+  pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
+  group_by(marker) |> 
+  summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
+  ungroup() |> 
+  mutate(data = "simple all, per sample")
 
 rbind(FC_before,FC_after) |> 
   ggplot(aes(x = logFC, y = marker, fill = data)) + 
@@ -386,14 +385,14 @@ As radiation changes the cell volume, we think differences in protein intensitie
 ```{r echo=FALSE}
 
 sce_Cal33 <- RUCova::rucova(sce = sce_Cal33, 
-               name_assay_before = "counts",
-               markers = m,
-               SUCs = x, 
-               apply_asinh_SUCs = TRUE, #when taking surrogates we need to asinh-transform them
-               model = "simple",
-               center_SUCs = "across_samples",
-               col_name_sample = "dose",     
-               name_assay_after = "counts_simple_acrosssamples")
+                            name_assay_before = "counts",
+                            markers = m,
+                            SUCs = x, 
+                            apply_asinh_SUCs = TRUE, #when taking surrogates we need to asinh-transform them
+                            model = "simple",
+                            center_SUCs = "across_samples",
+                            col_name_sample = "dose",     
+                            name_assay_after = "counts_simple_acrosssamples")
 
 
 ```
@@ -410,7 +409,7 @@ Log fold-changes between irradiated and control condition are modified according
 ```{r, fig.height=10, fig.width=10}
 FC_before <-  t(assay(sce_Cal33,"counts")) |>  
   as.tibble() |> 
-  cbind(sce_Cal33@colData) |> 
+  cbind(colData(sce_Cal33)) |> 
   mutate_at(vars(x,m), asinh) |> 
   pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
   group_by(marker) |> 
@@ -418,13 +417,13 @@ FC_before <-  t(assay(sce_Cal33,"counts")) |>
   mutate(data = "before RUCova") 
 
 FC_after <- t(assay(sce_Cal33,"counts_simple_acrosssamples")) |>  
-  as.tibble() |> cbind(sce_Cal33@colData)  |> 
-    mutate_at(vars(x,m), asinh) |> 
-    pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
-    group_by(marker) |> 
-    summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
-    ungroup() |> 
-    mutate(data = "simple all, per sample")
+  as.tibble() |> cbind(colData(sce_Cal33))  |> 
+  mutate_at(vars(x,m), asinh) |> 
+  pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
+  group_by(marker) |> 
+  summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
+  ungroup() |> 
+  mutate(data = "simple all, per sample")
 
 rbind(FC_before,FC_after) |> 
   ggplot(aes(x = logFC, y = marker, fill = data)) + 
@@ -440,7 +439,7 @@ Let's imagine you want to be conservative and only remove correlations between m
 ```{r}
 pca_cal33 <- t(assay(sce_Cal33,"counts")) |>
   as.tibble() |> 
-  cbind(sce_Cal33@colData) |> 
+  cbind(colData(sce_Cal33)) |> 
   select(x) |>
   mutate_all(asinh) |>
   mutate_all(scale) |>
@@ -490,15 +489,15 @@ Then, `SUCs= "PC1"` and `apply_asinh_SUCs = FALSE`, as asinh transformation is n
 ```{r echo=FALSE}
 
 sce_Cal33 <-  RUCova::rucova(sce = sce_Cal33, 
-                                name_assay_before = "counts",
-                                markers = m,
-                                SUCs = "PC1", 
-                                name_reduced_dim = "PCA",
-                                apply_asinh_SUCs = FALSE, #when taking surrogates we need to asinh-transform them
-                                model = "simple",
-                                center_SUCs = "across_samples",
-                                col_name_sample = "dose",     
-                                name_assay_after = "counts_simple_PC1")
+                             name_assay_before = "counts",
+                             markers = m,
+                             SUCs = "PC1", 
+                             name_reduced_dim = "PCA",
+                             apply_asinh_SUCs = FALSE, #when taking surrogates we need to asinh-transform them
+                             model = "simple",
+                             center_SUCs = "across_samples",
+                             col_name_sample = "dose",     
+                             name_assay_after = "counts_simple_PC1")
 
 
 ```
@@ -516,7 +515,7 @@ Log fold-changes between irradiated and control condition are modified according
 ```{r, fig.height=10, fig.width=10}
 FC_before <-  t(assay(sce_Cal33,"counts")) |>  
   as.tibble() |> 
-  cbind(sce_Cal33@colData) |> 
+  cbind(colData(sce_Cal33)) |> 
   mutate_at(vars(x,m), asinh) |> 
   pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
   group_by(marker) |> 
@@ -524,13 +523,13 @@ FC_before <-  t(assay(sce_Cal33,"counts")) |>
   mutate(data = "before RUCova") 
 
 FC_after <- t(assay(sce_Cal33,"counts_simple_PC1")) |>  
-  as.tibble() |> cbind(sce_Cal33@colData)  |> 
-    mutate_at(vars(x,m), asinh) |> 
-    pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
-    group_by(marker) |> 
-    summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
-    ungroup() |> 
-    mutate(data = "simple all, per sample")
+  as.tibble() |> cbind(colData(sce_Cal33))  |> 
+  mutate_at(vars(x,m), asinh) |> 
+  pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
+  group_by(marker) |> 
+  summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
+  ungroup() |> 
+  mutate(data = "simple all, per sample")
 
 rbind(FC_before,FC_after) |> 
   ggplot(aes(x = logFC, y = marker, fill = data)) + 
@@ -544,9 +543,9 @@ Let's compare the adjusted $R²$ per marker (goodness of fit, see complete defin
 
 ```{r, fig.height=5, fig.width=10}
 
-r2_a <- sce_Cal33@metadata$model_counts_simple_acrosssamples$adjr2 |> mutate(model = "simple all, across samples")
-r2_b <- sce_Cal33@metadata$model_counts_simple_persample$adjr2|> mutate(model = "simple all, per sample")
-r2_c <- sce_Cal33@metadata$model_counts_simple_PC1$adjr2 |> mutate(model = "simple PC1, across sample")
+r2_a <- metadata(sce_Cal33)$model_counts_simple_acrosssamples$adjr2 |> mutate(model = "simple all, across samples")
+r2_b <- metadata(sce_Cal33)$model_counts_simple_persample$adjr2|> mutate(model = "simple all, per sample")
+r2_c <- metadata(sce_Cal33)$model_counts_simple_PC1$adjr2 |> mutate(model = "simple PC1, across sample")
 
 rbind(rbind(r2_a,r2_b),r2_c) |> 
   ggplot(aes(x = adj_r_squared, y = marker, fill = model)) + 
@@ -570,9 +569,9 @@ The decision of which model parameters to use should be based on: (1) the extent
 We can also compare the slopes for each marker in each model.
 
 ```{r, fig.height=5, fig.width=20}
-slope_a <- sce_Cal33@metadata$model_counts_simple_acrosssamples$stand_slopes |> mutate(model = "simple all, across samples") 
-slope_b <- sce_Cal33@metadata$model_counts_simple_persample$stand_slopes |> mutate(model = "simple all, per sample")
-slope_c <- sce_Cal33@metadata$model_counts_simple_PC1$stand_slopes |> mutate(model = "simple PC1, across sample")
+slope_a <- metadata(sce_Cal33)$model_counts_simple_acrosssamples$stand_slopes |> mutate(model = "simple all, across samples") 
+slope_b <- metadata(sce_Cal33)$model_counts_simple_persample$stand_slopes |> mutate(model = "simple all, per sample")
+slope_c <- metadata(sce_Cal33)$model_counts_simple_PC1$stand_slopes |> mutate(model = "simple PC1, across sample")
 
 rbind(slope_a, slope_b, slope_c) |> 
   mutate(coef_key = factor(coef_key, levels = c("mean_DNA", "mean_BC","pan_Akt", "total_ERK", "PC1"))) |> 
@@ -590,15 +589,15 @@ Here we just show one example: Let's say different samples (dose) within Cal33 a
 ```{r}
 
 sce_Cal33 <- RUCova::rucova(sce = sce_Cal33, 
-               name_assay_before = "counts",
-               markers = m,
-               SUCs = x, 
-               apply_asinh_SUCs = TRUE, 
-               keep_offset = FALSE,
-               model = "offset",
-               center_SUCs = "per_sample",
-               col_name_sample = "dose",     
-               name_assay_after = "counts_offset_persample")
+                            name_assay_before = "counts",
+                            markers = m,
+                            SUCs = x, 
+                            apply_asinh_SUCs = TRUE, 
+                            keep_offset = FALSE,
+                            model = "offset",
+                            center_SUCs = "per_sample",
+                            col_name_sample = "dose",     
+                            name_assay_after = "counts_offset_persample")
 ```
 
 Fold-change between conditions ("dose") becomes zero:
@@ -606,27 +605,27 @@ Fold-change between conditions ("dose") becomes zero:
 ```{r, fig.height=5, fig.width=10}
 
 FC_before <- t(assay(sce_Cal33,"counts")) |> 
-                                as.tibble() |>
-                                cbind(sce_Cal33@colData)  |> 
+  as.tibble() |>
+  cbind(colData(sce_Cal33))  |> 
   mutate_at(vars(x,m), asinh) |> 
   pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
   group_by(marker) |> 
   summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
   mutate(data = "before RUCova") |> 
   ungroup() 
-  
+
 FC_after <- t(assay(sce_Cal33,"counts_offset_persample")) |> 
-                                as.tibble() |>
-                                cbind(sce_Cal33@colData)  |> 
-    mutate_at(vars(x,m), asinh) |> 
-    pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
-    group_by(marker) |> 
-    summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
-    ungroup() |> 
-    mutate(data = "offset all, per sample") 
-    
-    
-  rbind(FC_before, FC_after) |> 
+  as.tibble() |>
+  cbind(colData(sce_Cal33))  |> 
+  mutate_at(vars(x,m), asinh) |> 
+  pivot_longer(names_to = "marker", values_to = "value", c(x,m)) |> 
+  group_by(marker) |> 
+  summarise(logFC = mean(value[dose=="10Gy"])-mean(value[dose=="0Gy"])) |> 
+  ungroup() |> 
+  mutate(data = "offset all, per sample") 
+
+
+rbind(FC_before, FC_after) |> 
   ggplot(aes(x = logFC, y = marker, fill = data)) + 
   geom_col(position = "dodge")
 
@@ -635,7 +634,7 @@ FC_after <- t(assay(sce_Cal33,"counts_offset_persample")) |>
 Different intercepts between samples:
 
 ```{r, fig.height=5, fig.width=10}
-sce_Cal33@metadata$model_counts_offset_persample$eff_coefficients |> 
+metadata(sce_Cal33)$model_counts_offset_persample$eff_coefficients |> 
   filter(surrogate == FALSE) |> 
   ggplot(aes(x = eff_value, y = marker, fill = sample)) + 
   geom_col(position = "dodge") +
@@ -649,14 +648,14 @@ Here we just show one example, the least conservative: we eliminate differences 
 
 ```{r}
 sce <- RUCova::rucova(sce = sce, 
-               name_assay_before = "counts",
-               markers = m,
-               SUCs = x, 
-               apply_asinh_SUCs = TRUE, 
-               model = "interaction",
-               center_SUCs = "across_samples",
-               col_name_sample = "line",     
-               name_assay_after = "counts_interaction_persample")
+                      name_assay_before = "counts",
+                      markers = m,
+                      SUCs = x, 
+                      apply_asinh_SUCs = TRUE, 
+                      model = "interaction",
+                      center_SUCs = "across_samples",
+                      col_name_sample = "line",     
+                      name_assay_after = "counts_interaction_persample")
 
 
 ```
@@ -665,7 +664,7 @@ Different slopes for different cell lines:
 
 
 ```{r, fig.height=10, fig.width=10}
-sce@metadata$model_counts_interaction_persample$eff_coefficients |> 
+metadata(sce)$model_counts_interaction_persample$eff_coefficients |> 
   filter(surrogate != FALSE) |> 
   ggplot(aes(x = eff_value, y = marker, fill = sample)) + 
   geom_col(position = "dodge") +

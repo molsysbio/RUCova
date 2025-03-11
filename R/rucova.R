@@ -39,51 +39,51 @@
 #' col_name_sample = "line", name_assay_after = "counts_interaction")
 #' @export
 rucova <- function(sce, name_assay_before = "counts",  markers, SUCs = c("mean_DNA", "mean_BC", "total_ERK", "pan_Akt"), name_reduced_dim = "PCA", apply_asinh_SUCs = TRUE, model = "interaction", col_name_sample = "line",
-                               center_SUCs = "across_samples", keep_offset = TRUE, name_assay_after = "counts_rucova") {
-
- 
-   if (missing(sce) == TRUE || !inherits(sce, "SingleCellExperiment")){
-     stop("Please provide a SingleCellExperiment class")
-     
-   }
-    data <- t(assay(sce,name_assay_before)) |> cbind(colData(sce)) |> as.data.frame()
-    
-    if (grepl("PC",SUCs)[1]){# if model is based on PCs, add this info to the data
-      data <- data |> cbind(reducedDim(sce, name_reduced_dim))
-      } 
+                   center_SUCs = "across_samples", keep_offset = TRUE, name_assay_after = "counts_rucova") {
   
-    # Type of model ------------------------------------
+  
+  if (missing(sce) == TRUE || !inherits(sce, "SingleCellExperiment")){
+    stop("Please provide a SingleCellExperiment class")
+    
+  }
+  data <- t(assay(sce,name_assay_before)) |> cbind(colData(sce)) |> as.data.frame()
+  
+  if (grepl("PC",SUCs)[1]){# if model is based on PCs, add this info to the data
+    data <- data |> cbind(reducedDim(sce, name_reduced_dim))
+  } 
+  
+  # Type of model ------------------------------------
   if (model == "offset" || model == "interaction" || center_SUCs == "per_sample") {
     if (missing(col_name_sample) == TRUE){
       stop("Please specify argument `col_name_sample`")
-
+      
     }
-          if(apply_asinh_SUCs == TRUE) {
-            dt <- data |>
-              dplyr::rename(sample = all_of(col_name_sample)) |>
-              mutate(across(all_of(c(markers, SUCs)), asinh))
-          } else {
-            dt <- data |>
-              dplyr::rename(sample = all_of(col_name_sample)) |>
-              mutate(across(all_of(markers), asinh))
-          }
-
-
-     # dt$sample <- droplevels(dt$sample)
-
+    if(apply_asinh_SUCs == TRUE) {
+      dt <- data |>
+        dplyr::rename(sample = all_of(col_name_sample)) |>
+        mutate(across(all_of(c(markers, SUCs)), asinh))
+    } else {
+      dt <- data |>
+        dplyr::rename(sample = all_of(col_name_sample)) |>
+        mutate(across(all_of(markers), asinh))
+    }
+    
+    
+    # dt$sample <- droplevels(dt$sample)
+    
   } else {
-          if(apply_asinh_SUCs == TRUE) {
-
-          dt <- data |>
-            mutate(across(all_of(c(markers, SUCs)), asinh))
-
-          } else {
-
-            dt <- data |>
-              mutate(across(all_of(markers), asinh))
-          }
+    if(apply_asinh_SUCs == TRUE) {
+      
+      dt <- data |>
+        mutate(across(all_of(c(markers, SUCs)), asinh))
+      
+    } else {
+      
+      dt <- data |>
+        mutate(across(all_of(markers), asinh))
+    }
   }
-
+  
   if (center_SUCs == "per_sample") {
     dt <- dt |>
       group_by(sample) |>
@@ -95,19 +95,19 @@ rucova <- function(sce, name_assay_before = "counts",  markers, SUCs = c("mean_D
   } else {
     stop("Please specify argument 'center_SUCs'")
   }
-
+  
   # Add dummy variables if necessary  ------------------------------------
   if (model == "interaction" || model == "offset") {
     dt <- dummy_cols(.data = dt,
                      select_columns = "sample",
                      remove_first_dummy = TRUE)
-
+    
     dummy_sample_var <- colnames(dt)[grepl("sample_", colnames(dt))]
     dummy_values <- dt |>
       group_by(sample) |>
       summarise(across(all_of(dummy_sample_var), max))
   }
-
+  
   # Model function and coefficients  ------------------------------------
   if (model == "interaction") {
     combinations <- expand.grid(SUCs = SUCs, dummy_sample_var = dummy_sample_var)
@@ -121,24 +121,25 @@ rucova <- function(sce, name_assay_before = "counts",  markers, SUCs = c("mean_D
     slope_dummy <- NULL
     n_coeff <- 1 + length(SUCs)
   }
-
+  
   # Regression ------------------------------------
   fits <- lapply(markers, function(marker_to_fit) {
-    print(paste0("Fitting ", marker_to_fit))
+    message("Fitting ", marker_to_fit)
     formula <- reformulate(termlabels = c(dummy_sample_var, SUCs, slope_dummy),
                            response = marker_to_fit)
     lm(formula = formula, data = dt)
-    }) |>
+  }) |>
     setNames(markers)
-
   
-  model_coefficients.new <- sapply(fits, coef) |> t() |>
+  
+  model_coefficients.new <- vapply(fits, coef, FUN.VALUE = numeric(length(coef(fits[[1]])))) |> 
+    t() |> 
     as_tibble(rownames = "marker")
-
-  model_residuals.new <- sapply(fits, resid) |>
+  
+  model_residuals.new <- vapply(fits, resid, FUN.VALUE = numeric(length(resid(fits[[1]])))) |> 
     as_tibble() |>
     mutate(cell_id = dt$cell_id, .before = 1)
-
+  
   adjr2.new <- vapply(fits, function(fit) {
     SSres <- sum(residuals(fit)^2)
     SStot <- sum((fit$model[[1]] - mean(fit$model[[1]]))^2)
@@ -148,20 +149,20 @@ rucova <- function(sce, name_assay_before = "counts",  markers, SUCs = c("mean_D
     1 - (1 - fit_rsquared) * (n - 1) / (n - p - 1)
   }, FUN.VALUE = numeric(1)) |>
     tibble::enframe(name = "marker", value = "adj_r_squared")
-
+  
   # For output
   model_formula <- reformulate(
     termlabels = c(dummy_sample_var, SUCs, slope_dummy),
     response = "y")
-
+  
   # Regressed values ------------------------------------
   new_values <- model_residuals.new
-
+  
   for (m in (as.vector(markers))) {
     new_values[m] <-
       as.numeric(as.vector(unlist(model_residuals.new[m]))) + # residuals
       as.numeric(model_coefficients.new[model_coefficients.new$marker == m, 2])   # intercept for all
-
+    
     if (keep_offset == TRUE) {
       for (i in dummy_sample_var) {
         new_values[m] <- pull(new_values,m) +
@@ -169,86 +170,85 @@ rucova <- function(sce, name_assay_before = "counts",  markers, SUCs = c("mean_D
       }
     }
   }
-
+  
   data_reg <-
     data |>
     select(-all_of(markers)) |>
     left_join(new_values, by = "cell_id") |>
     select(colnames(data)) |> # same order
     mutate(across(all_of(markers), sinh))
-
+  
   # Effective coefficients ------------------------------------
   eff_coefficients <- model_coefficients.new
   if (model == "interaction" || model == "offset") {
     baseline_sample <-  as.character(dummy_values[[1]][1])
   }
-
+  
   eff_coefficients <- eff_coefficients |>
-      pivot_longer(names_to = "coef_key", -marker) |>
-      mutate(surrogate = ifelse(str_detect(coef_key, paste(SUCs, collapse = "|")),
-                                str_extract(coef_key, paste(SUCs, collapse = "|")), as.logical(FALSE)))
-
-    if (model == "interaction") {
-      eff_coefficients <- eff_coefficients |>
-        mutate(sample = str_remove(coef_key, "sample_"),
-               sample = str_remove(sample, paste0(":", surrogate)),
-               sample = ifelse(sample %in% str_remove(dummy_sample_var, "sample_"), sample, baseline_sample)) |>
-        group_by(surrogate, marker) |>
-        mutate(eff_value = ifelse(sample == baseline_sample,
-                                  value,
-                                  value + value[sample == baseline_sample])) |>
-        ungroup()
-    } else if (model == "offset") {
-      eff_coefficients <- eff_coefficients |>
-        mutate(sample = str_remove(coef_key, "sample_"),
-               sample = ifelse(sample %in% str_remove(dummy_sample_var, "sample_") &
-                                 surrogate == "FALSE", sample, baseline_sample),
-               sample = ifelse(surrogate %in% SUCs, "all", sample)) |>
-        group_by(surrogate, marker) |>
-        mutate(eff_value = ifelse(sample == baseline_sample | surrogate %in% SUCs,
-                                  value,
-                                  value + value[sample == baseline_sample])) |>
-        ungroup()
-    } else {
-      eff_coefficients <- eff_coefficients |>
-        mutate(eff_value = value)
-    }
-
+    pivot_longer(names_to = "coef_key", -marker) |>
+    mutate(surrogate = ifelse(str_detect(coef_key, paste(SUCs, collapse = "|")),
+                              str_extract(coef_key, paste(SUCs, collapse = "|")), as.logical(FALSE)))
+  
+  if (model == "interaction") {
+    eff_coefficients <- eff_coefficients |>
+      mutate(sample = str_remove(coef_key, "sample_"),
+             sample = str_remove(sample, paste0(":", surrogate)),
+             sample = ifelse(sample %in% str_remove(dummy_sample_var, "sample_"), sample, baseline_sample)) |>
+      group_by(surrogate, marker) |>
+      mutate(eff_value = ifelse(sample == baseline_sample,
+                                value,
+                                value + value[sample == baseline_sample])) |>
+      ungroup()
+  } else if (model == "offset") {
+    eff_coefficients <- eff_coefficients |>
+      mutate(sample = str_remove(coef_key, "sample_"),
+             sample = ifelse(sample %in% str_remove(dummy_sample_var, "sample_") &
+                               surrogate == "FALSE", sample, baseline_sample),
+             sample = ifelse(surrogate %in% SUCs, "all", sample)) |>
+      group_by(surrogate, marker) |>
+      mutate(eff_value = ifelse(sample == baseline_sample | surrogate %in% SUCs,
+                                value,
+                                value + value[sample == baseline_sample])) |>
+      ungroup()
+  } else {
+    eff_coefficients <- eff_coefficients |>
+      mutate(eff_value = value)
+  }
+  
   # Standardized slopes (effect size) ------------------------------------
-    if (model == "simple" || model == "offset") { # 1 slope across all cells
-      sd_values <- dt |>
-        summarise(across(all_of(c(markers, SUCs)), sd)) |>
-        ungroup() |>
-        pivot_longer(names_to = "marker", values_to = "sd_y", all_of(markers)) |>
-        pivot_longer(names_to = "surrogate", values_to = "sd_x", all_of(SUCs))
-
-      stand_slopes <- eff_coefficients |>
-        filter(surrogate != FALSE) |>
-        left_join(sd_values, by = c("marker", "surrogate")) |>
-        mutate(stand_value = eff_value * sd_x / sd_y)
-    } else { # 1 slope per sample
-      sd_values <- dt |>
-        group_by(sample) |>
-        summarise(across(all_of(c(markers, SUCs)), sd)) |>
-        ungroup() |>
-        pivot_longer(names_to = "marker", values_to = "sd_y", all_of(markers)) |>
-        pivot_longer(names_to = "surrogate", values_to = "sd_x", all_of(SUCs))
-
-      stand_slopes <- eff_coefficients |>
-        filter(surrogate != FALSE) |>
-        left_join(sd_values, by = c("marker", "surrogate", "sample")) |>
-        mutate(stand_value = eff_value * sd_x / sd_y)
-    }
+  if (model == "simple" || model == "offset") { # 1 slope across all cells
+    sd_values <- dt |>
+      summarise(across(all_of(c(markers, SUCs)), sd)) |>
+      ungroup() |>
+      pivot_longer(names_to = "marker", values_to = "sd_y", all_of(markers)) |>
+      pivot_longer(names_to = "surrogate", values_to = "sd_x", all_of(SUCs))
+    
+    stand_slopes <- eff_coefficients |>
+      filter(surrogate != FALSE) |>
+      left_join(sd_values, by = c("marker", "surrogate")) |>
+      mutate(stand_value = eff_value * sd_x / sd_y)
+  } else { # 1 slope per sample
+    sd_values <- dt |>
+      group_by(sample) |>
+      summarise(across(all_of(c(markers, SUCs)), sd)) |>
+      ungroup() |>
+      pivot_longer(names_to = "marker", values_to = "sd_y", all_of(markers)) |>
+      pivot_longer(names_to = "surrogate", values_to = "sd_x", all_of(SUCs))
+    
+    stand_slopes <- eff_coefficients |>
+      filter(surrogate != FALSE) |>
+      left_join(sd_values, by = c("marker", "surrogate", "sample")) |>
+      mutate(stand_value = eff_value * sd_x / sd_y)
+  }
   
-      tmp <- data_reg |> select(rownames(sce)) |> t()
-      
-      assays(sce,withDimnames = FALSE)[[name_assay_after]] <- tmp
+  tmp <- data_reg |> select(rownames(sce)) |> t()
   
-      out_ruc <- list(name_assay_before,markers, SUCs, name_reduced_dim, apply_asinh_SUCs, model,col_name_sample,center_SUCs, keep_offset, name_assay_after, model_formula, model_coefficients.new, eff_coefficients, model_residuals.new, adjr2.new, stand_slopes)
-      names(out_ruc) <- c("name_assay_before", "markers", "SUCs", "name_reduced_dim","apply_asinh_SUCs", "model", "col_name_sample", "center_SUCs", "keep_offset", "name_assay_after","model_formula", "model_coefficients","eff_coefficients", "model_residuals", "adjr2", "stand_slopes")
-      
-      metadata(sce)[[paste0("model_",name_assay_after)]] <- out_ruc
-      
+  assays(sce,withDimnames = FALSE)[[name_assay_after]] <- tmp
+  
+  out_ruc <- list(name_assay_before,markers, SUCs, name_reduced_dim, apply_asinh_SUCs, model,col_name_sample,center_SUCs, keep_offset, name_assay_after, model_formula, model_coefficients.new, eff_coefficients, model_residuals.new, adjr2.new, stand_slopes)
+  names(out_ruc) <- c("name_assay_before", "markers", "SUCs", "name_reduced_dim","apply_asinh_SUCs", "model", "col_name_sample", "center_SUCs", "keep_offset", "name_assay_after","model_formula", "model_coefficients","eff_coefficients", "model_residuals", "adjr2", "stand_slopes")
+  
+  metadata(sce)[[paste0("model_",name_assay_after)]] <- out_ruc
+  
   return(sce)
 }
-  
