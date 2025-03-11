@@ -148,7 +148,7 @@ calc_mean_BC <- function(sce, name_assay = "counts", bc_channels, n_bc, q = 0.95
 heatmap_compare_corr <- function(sce, name_assay_before = "counts", name_assay_after = NULL, name_reduced_dim = NULL){
   
   #### before: no models pars needed
-  data_before <- t(assay(sce,name_assay_before)) |>  as.tibble()
+  data_before <- t(assay(sce,name_assay_before)) |>  as_tibble()
   
 
   ## if it is an initial evaluation with no assay after RUCova:
