@@ -66,8 +66,10 @@ BiocManager::install("RUCova")
 
 To install the latest development version directly from GitHub, use:
 
-```{r, eval = TRUE, message = FALSE}
+```{r, eval = FALSE, message = FALSE}
+
 remotes::install_github("molsysbio/RUCova@devel", force = TRUE)
+
 ```
 
 
