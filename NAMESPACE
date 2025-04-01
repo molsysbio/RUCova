@@ -2,6 +2,7 @@
 
 export(calc_mean_BC)
 export(calc_mean_DNA)
+export(compare_corr)
 export(heatmap_compare_corr)
 export(rucova)
 import(ComplexHeatmap)

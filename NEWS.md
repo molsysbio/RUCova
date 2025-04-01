@@ -1,8 +1,13 @@
 # rucova 1.0.0
 
-## Changes in version 0.99.16
+## Changes in version 0.99.22
+- Introduced RUCova::compare_corr() to export correlation matrices for downstream analysis.
+- Upgraded RUCova::heatmap_compare_corr() to support saving heatmap objects (in addition to visualization).
+
+## Changes in version 0.99.21
 - RUCova runs now on a SingleCellExperiment object ensuring interoperatibility between Bioconductor packages. Note that the interface changed compared to v0.99.0.
 - Included a comprehensive vignette demonstrating the package's functionality.
+- Unit tests present
 
 ## Changes in version 0.99.0
 - This is the first release of RUCova, as published in: RUCova: Removal of Unwanted Covariance in mass cytometry data Rosario Astaburuaga-García, Thomas Sell, Samet Mutlu, Anja Sieber, Kirsten Lauber, Nils Blüthgen. Bioinformatics 2024, 40, btae669. doi: https://doi.org/10.1093/bioinformatics/btae669 .

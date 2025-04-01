@@ -53,5 +53,5 @@ test_that("heatmap_compare_corr function works as expected", {
          "pSmad2.3","pNFkB","IkBa", "CXCL1","Lamin_B1", "pStat1","pStat3", "YAP","NICD")
   result <- heatmap_compare_corr(sce[,sce$line == "Cal33"], name_assay_before = "counts")
   # Check if the output is a Heatmap
-  expect_s4_class(result, "HeatmapList")
+  expect_s4_class(result, "Heatmap")
 })

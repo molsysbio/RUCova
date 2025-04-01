@@ -164,7 +164,28 @@ The regressed counts are then store in an assay named ``name_assay_after`` and t
 
 ### 4. Evaluate the benefit of RUCova
 
-We recommend calculating the Pearson correlation coefficients between markers and SUCs before RUCova and after RUCova, and comparing. For this we offer a heatmap function that plots the pearson correlation coefficients between markers on a double triangular heatmap (lower triangle: before RUCova, upper triangle: after RUCova). If RUCova has not been applied, the output is a symmetric heatmap.
+We recommend calculating the Pearson correlation coefficients between markers and SUCs before RUCova and after RUCova, and comparing. To make things easier, we offer a function that calculates such correlations and exports them on a double triangular matrix (lower triangle: before RUCova, upper triangle: after RUCova). If RUCova has not been applied, the output is a symmetric matrix.
+
+```
+matrix_corr <- RUCova::compare_corr(sce, name_assay_before = "counts", name_assay_after = "counts_interaction_all", name_reduced_dim = "PCA") 
+```
+
+This matrix can be easily visualized with your favorite package or directly running the function ```heatmap_compare_corr```. The heatmap is then automatically visualized and can be stored).
+
+
+```
+heatmap_corr <- RUCova::heatmap_compare_corr(sce_Cal33[c(m,x)]) #same in lower and upper triangle
+```
+
+
+
+Let's give a look at the pearson correlation coefficients between markers before applying RUCova (symmetric matrix). 
+RUCova offers the option of returning the correlation coefficients on a matrix or directly the heatmap, which is automatically plotted and can also be stored:
+
+```{r, fig.height=10, fig.width=10}
+matrix_corr <- RUCova::compare_corr(sce, name_assay_before = "counts", name_assay_after = "counts_interaction_all", name_reduced_dim = "PCA") 
+heatmap_corr <- RUCova::heatmap_compare_corr(sce_Cal33[c(m,x)]) #same in lower and upper triangle
+```
 
 ```
 heatmap_compare_corr(sce, name_assay_before = "counts", name_assay_after = "counts_interaction_all", name_reduced_dim = "PCA")
