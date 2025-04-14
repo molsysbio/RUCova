@@ -12,8 +12,11 @@ Bioinformatics 2024; doi: [https://doi.org/10.1101/2024.05.24.595717](https://do
 To install the stable release of RUCova from Bioconductor (recommended), run:
 
 ```
-if (!requireNamespace("BiocManager", quietly = TRUE))
+if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
+
+# The following initializes usage of Bioc devel
+BiocManager::install(version='devel')
 
 BiocManager::install("RUCova")
 ```
